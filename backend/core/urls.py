@@ -50,7 +50,9 @@ urlpatterns = [
 
     # Local app routes (v1 prefix)
     
-    path('v1/users/', include('apps.users.urls')),
+    path('users/', include('apps.users.urls')),
+    path("", include("apps.blog.urls")),
+    path("", include("apps.tags.urls")),
     
     
     # API Documentation
@@ -60,6 +62,8 @@ urlpatterns = [
     #auth
     path("accounts/", include("allauth.urls")),
     path("_allauth/", include("allauth.headless.urls")),
+    
+
     
     # Redirect root to docs
     # path('', redirect_to_docs, name='root-redirect'),

@@ -92,6 +92,8 @@ EXTERNAL_APPS = [
     'drf_yasg',
     'storages',
     'corsheaders',
+    "django_extensions",
+    "django_filters",
     
     #Auth
     "allauth",
@@ -102,7 +104,13 @@ EXTERNAL_APPS = [
 
     # Local Dynamic Apps
     
+    'apps.blog',
+    'apps.comments',
+    'apps.likes',
+    'apps.tags',
+
     'apps.users',
+    # 'apps.users.apps.UsersConfig'
     
 ]
 
@@ -217,6 +225,13 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+        "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "core.pagination.DefaultPagination",
+    "PAGE_SIZE": 10,
 }
 
 SIMPLE_JWT = {

@@ -1,113 +1,125 @@
-# Django Secure-Auth Boilerplate (Headless + HttpOnly)
+# 🌐 Social Media Backend API
 
-A production-ready Django & Django Rest Framework (DRF) boilerplate featuring a fully decoupled, secure authentication system. This template uses **Django Allauth Headless** with **HttpOnly Cookie-based sessions**, providing superior security against XSS and CSRF attacks for modern SPA/Mobile frontends.
+An industry-standard, scalable Social Media REST API built with **Django 6.0** and **Django REST Framework**. This backend provides a robust foundation for building modern social platforms with features like blog posts, nested comments, profile management, and a followers system.
+
+---
 
 ## 🚀 Key Features
 
-*   **Secure Headless Auth:** Integrated `django-allauth.headless` for a pure JSON API authentication flow.
-*   **HttpOnly Cookie Sessions:** Automatic session management via secure cookies—no manual JWT storage in `localStorage` required.
-*   **Custom User Model:** Email-based authentication out of the box (`apps.users.CustomUser`).
-*   **API Documentation:** Auto-generated Swagger and Redoc via `drf-yasg`.
-*   **Production Ready:** 
-    *   Pre-configured **CORS** and **CSRF** settings.
-    *   **WhiteNoise** for static file serving.
-    *   **Sentry** integration for error tracking.
-    *   **AWS S3** support for media and static files.
-    *   **PostgreSQL** and **SQLite** support (via environment variables).
-*   **Clean Architecture:** Separated `apps/` directory for better project organization.
+- **🔐 Advanced Authentication:** JWT-based authentication with `django-allauth` (Headless) and `SimpleJWT`.
+- **📝 Blog System:** Automatic slug generation, categorization, and multiple image uploads.
+- **💬 Engagement:** Nested comments (replies), post liking, and comment liking.
+- **👤 User Profiles:** Detailed profiles with bio, profile pictures, and social links.
+- **🤝 Social Graph:** Robust Follow/Unfollow system with follower/following list endpoints.
+- **📂 Media Management:** Support for local storage (Dev) and AWS S3 (Prod).
+- **📊 Optimized Queries:** Extensive use of `select_related`, `prefetch_related`, and `annotate` for high performance.
+- **📖 API Documentation:** Auto-generated Swagger/OpenAPI documentation.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠 Tech Stack
 
-- **Framework:** Django 5.x / Django Rest Framework
-- **Auth:** Django-Allauth (Headless)
-- **Database:** SQLite (Development) / PostgreSQL (Production)
-- **Environment:** Python-Decouple (.env support)
-- **API Docs:** Swagger (OpenAPI)
+- **Framework:** [Django 6.0](https://www.djangoproject.com/)
+- **API:** [Django REST Framework](https://www.django-rest-framework.org/)
+- **Auth:** `django-allauth`, `djangorestframework-simplejwt`
+- **Database:** PostgreSQL (Production), SQLite (Development)
+- **Monitoring:** Sentry Integration
+- **Utilities:** `django-filter`, `drf-yasg`, `whitenoise`
 
 ---
 
-## 🏁 Getting Started
+## 📦 Getting Started
 
-### 1. Prerequisites
-- Python 3.10+
+### Prerequisites
+- Python 3.13+
 - `uv` (recommended) or `pip`
 
-### 2. Installation
-```bash
-# Clone the repository
-git clone <your-repo-url>
-cd backend
+### Installation
 
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+1. **Clone the repository:**
+   ```bash
+   git clone <repo-url>
+   cd backend
+   ```
 
-# Install dependencies
-pip install -r requirements.txt  # Or 'uv sync' if using uv
-```
+2. **Set up Environment Variables:**
+   Create a `.env` file in the root directory:
+   ```env
+   DEBUG=True
+   SECRET_KEY=your-secret-key
+   ALLOWED_HOSTS=localhost,127.0.0.1
+   DATABASE_URL=postgres://user:password@localhost:5432/db_name
+   ```
 
-### 3. Environment Setup
-Create a `.env` file in the `backend/` directory:
-```env
-DEBUG=True
-SECRET_KEY=your-secret-key
-ALLOWED_HOSTS=localhost,127.0.0.1
-CORS_ALLOWED_ORIGINS=http://localhost:3000
-CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
-```
+3. **Install Dependencies:**
+   ```bash
+   uv sync
+   # or
+   pip install -r requirements.txt
+   ```
 
-### 4. Database & Admin
-```bash
-python manage.py makemigrations users
-python manage.py migrate
-python manage.py createsuperuser
-```
+4. **Run Migrations:**
+   ```bash
+   python manage.py migrate
+   ```
 
-### 5. Run Server
-```bash
-python manage.py runserver
-```
+5. **Start Development Server:**
+   ```bash
+   python manage.py runserver
+   ```
 
 ---
 
-## 🔐 Authentication Flow (Headless)
+## 📖 API Documentation (Frontend Guide)
 
-This boilerplate uses the `browser` client flow by default, which relies on HttpOnly cookies.
+The API is fully documented using Swagger. Once the server is running, visit:
+🔗 **[http://localhost:8000/api/docs/](http://localhost:8000/api/docs/)**
 
-| Action | Method | Endpoint |
+### 🔑 Authentication Flow
+1. **Login:** POST to `/_allauth/browser/v1/auth/login` with `email` and `password`.
+2. **Token:** The system uses JWT. Include the access token in the header for protected routes:
+   `Authorization: Bearer <your_access_token>`
+
+### 📂 Major Endpoints
+
+| Endpoint | Method | Description |
 | :--- | :--- | :--- |
-| **Discovery/Config** | `GET` | `/_allauth/browser/v1/config` |
-| **Signup** | `POST` | `/_allauth/browser/v1/auth/signup` |
-| **Login** | `POST` | `/_allauth/browser/v1/auth/login` |
-| **Check Session** | `GET` | `/_allauth/browser/v1/auth/session` |
-| **Logout** | `DELETE` | `/_allauth/browser/v1/auth/session` |
-
-### Security Implementation Details:
-1.  **HttpOnly Cookies:** The `sessionid` is never accessible via JavaScript, mitigating XSS.
-2.  **CSRF Protection:** For `POST/PUT/DELETE` requests, you must include the `X-CSRFToken` header (retrieved from the `csrftoken` cookie).
-3.  **Cross-Origin:** Pre-configured for separate frontend/backend domains via `django-cors-headers`.
+| `/posts/` | GET / POST | List/Create blog posts |
+| `/posts/{id}/like/` | POST | Toggle like on a post |
+| `/posts/{id}/comments/` | GET / POST | Manage post comments |
+| `/users/profiles/me/` | GET / PUT | Manage own profile |
+| `/users/profiles/{id}/follow/` | POST | Follow/Unfollow a user |
+| `/api/docs/` | GET | Full Swagger UI |
 
 ---
 
-## 📖 API Documentation
+## 🏗 Project Structure
 
-Once the server is running, visit:
-- **Swagger UI:** `http://localhost:8000/api/docs/`
-- **OpenAPI JSON:** `http://localhost:8000/_allauth/openapi.json`
-
----
-
-## 🧪 Postman Testing Tips
-
-1.  **Enable Cookies:** Postman handles cookies automatically. Ensure the "Cookie Jar" is active for `localhost`.
-2.  **Handling CSRF:** 
-    - Perform a `GET` to the `/config` endpoint first to receive the `csrftoken` cookie.
-    - Copy the `csrftoken` value into the `X-CSRFToken` header for subsequent `POST` requests.
-3.  **Headers:** Always include `Accept: application/json` and `Content-Type: application/json`.
+```text
+backend/
+├── apps/
+│   ├── blog/       # Post, Category, and Tagging logic
+│   ├── comments/   # Nested comments & comment likes
+│   ├── likes/      # Generic Post likes
+│   ├── users/      # Custom User & Profile management
+│   └── tags/       # Generic tagging system (Content-Type)
+├── core/           # Project settings & URL configuration
+└── manage.py
+```
 
 ---
 
-## 📄 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 🛡 Industry Standards Applied
+- **Clean Code:** Adheres to PEP8 and DRF best practices.
+- **Surgical Logic:** Atomic transactions for data integrity.
+- **Security:** CSRF/CORS protection and production-ready security settings.
+- **Scalability:** Optimized for high-volume reads using Django's ORM optimization techniques.
+
+---
+
+## 🤝 Contributing
+Feel free to fork this project and submit PRs for any improvements!
+
+---
+**Maintained by:** Ahnaf  
+**Status:** Production Ready
