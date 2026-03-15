@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings 
 from django.contrib.auth.models import AbstractUser
+from cloudinary.models import CloudinaryField
 
 # Create your models here.
 class CustomUser(AbstractUser):
@@ -12,7 +13,7 @@ class CustomUser(AbstractUser):
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile',)
     bio = models.TextField(blank=True, null=True)
-    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+    profile_picture = CloudinaryField('image', folder='users/avatars/', overwrite= True)
     role = models.CharField(max_length=100, default="Member", db_index=True)
     birth_date = models.DateField(blank=True, null=True)
     is_verified = models.BooleanField(default=False, db_index=True)

@@ -3,6 +3,9 @@ from datetime import timedelta
 from decouple import config
 from urllib.parse import urlparse
 import os
+import cloudinary
+import cloudinary.api
+import cloudinary.uploader
 
 # -------------------------------
 # Build paths
@@ -12,7 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # -------------------------------
 # Environment variables
 # -------------------------------
-SECRET_KEY = config('SECRET_KEY', cast=str, default='django-insecure-MHTfc5x3ryFbTUuZanNfLuyYXwOS2j3d3B2OcMo4F6aw0nlLrHek_wHUYAujkF2_kSo')
+SECRET_KEY = config('SECRET_KEY', cast=str)
 DEBUG = config('DEBUG', cast=bool, default=True)
 
 # AWS Settings
@@ -94,6 +97,7 @@ EXTERNAL_APPS = [
     'corsheaders',
     "django_extensions",
     "django_filters",
+    'cloudinary',
     
     #Auth
     "allauth",
@@ -270,3 +274,11 @@ HEADLESS_SERVE_SPECIFICATION = True
 #     "x-email-verification-key",
 #     "x-password-reset-key",
 # )
+
+# Cloudinary settings
+cloudinary.config(
+    cloud_name = config("CLOUD_NAME"),
+    api_key = config("API_KEY"),
+    api_secret = config("API_SECRET"),
+    
+)

@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils.text import slugify
+from cloudinary.models import CloudinaryField
 
 
 class Category(models.Model):
@@ -74,6 +75,6 @@ class Post(models.Model):
 
 class PostImages(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='blog/images')
+    image = CloudinaryField('image', folder='blog/images/', overwrite= True)
 
     
