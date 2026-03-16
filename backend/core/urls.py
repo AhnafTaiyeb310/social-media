@@ -42,29 +42,28 @@ def redirect_to_docs(request):
 
 
 
+from django.contrib import admin
+from django.urls import path, include
+from django.shortcuts import redirect
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-
-    # Sentry Error Trigger
     path('sentry-debug/', trigger_error),
 
-    # Local app routes (v1 prefix)
-    
+    # Local app routes
     path('users/', include('apps.users.urls')),
     path("", include("apps.blog.urls")),
     path("", include("apps.tags.urls")),
-    
-    
+
+    # Simple JWT (For Mobile/Direct API usage)
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # Allauth Headless (For Web/Interactive Auth)
+    # This provides endpoints like /_allauth/headless/account/login
+    path("_allauth/", include("allauth.headless.urls")),
+
     # API Documentation
     path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('api/swagger.json', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-
-    #auth
-    path("accounts/", include("allauth.urls")),
-    path("_allauth/", include("allauth.headless.urls")),
-    
-
-    
-    # Redirect root to docs
-    # path('', redirect_to_docs, name='root-redirect'),
 ]

@@ -1,3 +1,4 @@
+import cloudinary
 from django.db import transaction
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
@@ -22,12 +23,14 @@ class PostSerializer(ModelSerializer):
     display_category = serializers.StringRelatedField(source='category')
     author = serializers.ReadOnlyField(source='author.username')
     uploaded_images = serializers.ListField(
-        child= serializers.ImageField(max_length=1000000,
-        allow_empty_file= False,
-        use_url=False,
-        write_only= True,
-        required= False,
-        )
+        child=serializers.ImageField(
+            max_length=1000000,
+            allow_empty_file=False,
+            use_url=False,
+            write_only=True,
+        ),
+        required=False,  # Now optional
+        allow_empty=True
     )
 
     likes_count = serializers.IntegerField(read_only=True)
@@ -88,10 +91,17 @@ class PostSerializer(ModelSerializer):
         return post
     
 class PostImageSerializer(ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    image = serializers.CharField(read_only=True)
 
     class Meta:
         model = models.PostImages
-        fields = ['id', 'image']
+        fields = ['id', 'image_url', 'image'] 
+
+    def get_image_url(self, obj):
+        if obj.image:
+            return cloudinary.utils.cloudinary_url(obj.image)[0]
+        return None
 
     def create(self, validated_data):
         post_id = self.context['post_id']

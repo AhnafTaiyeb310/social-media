@@ -98,6 +98,8 @@ EXTERNAL_APPS = [
     "django_extensions",
     "django_filters",
     'cloudinary',
+    'celery',
+    'django_celery_beat',
     
     #Auth
     "allauth",
@@ -112,6 +114,7 @@ EXTERNAL_APPS = [
     'apps.comments',
     'apps.likes',
     'apps.tags',
+    'apps.utils',
 
     'apps.users',
     # 'apps.users.apps.UsersConfig'
@@ -222,6 +225,9 @@ else:
         },
     }
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # JWT Configuration
@@ -259,12 +265,21 @@ ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 HEADLESS_ONLY = True
 HEADLESS_FRONTEND_URLS = {
     "account_confirm_email": "http://localhost:3000/account/verify-email/{key}",
-    # "account_reset_password": "/account/password/reset",
-    # "account_reset_password_from_key": "/account/password/reset/key/{key}",
-    # "account_signup": "/account/signup",
-    # "socialaccount_login_error": "/account/provider/callback",
 }
 HEADLESS_SERVE_SPECIFICATION = True
+
+# --- Allauth Headless / Security (Cookie Based) ---
+# For Mobile, you can use SimpleJWT or these Headless endpoints which 
+# return tokens in JSON if no cookie is provided.
+
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = not DEBUG # Only True in production
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Allow cross-site cookies if the frontend is on a different domain
+CSRF_COOKIE_HTTPONLY = False  # Must be False so JS can read the token for the CSRF header
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = not DEBUG
 
 # from corsheaders.defaults import default_headers
 
@@ -282,3 +297,17 @@ cloudinary.config(
     api_secret = config("API_SECRET"),
     
 )
+
+# Celery Configuration
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+from celery.schedules import crontab
+
+# CELERY BEAT SCHEDULE
+CELERY_BEAT_SCHEDULE = {
+    'weekly-cleanup-all-tmp': {
+        'task': 'apps.utils.tasks.purge_old_tmp_files', 
+        'schedule': crontab(hour=0, minute=0, day_of_week=1), 
+    },
+}

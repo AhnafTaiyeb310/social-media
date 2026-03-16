@@ -13,6 +13,12 @@ from .permissions import isOwner
 from apps.likes.models import PostLike
 from core.pagination import FeedPagination
 
+import os
+import uuid
+from django.conf import settings
+from django.core.files.storage import default_storage
+from .tasks import upload_post_image_task
+
 
 class PostModelViewSet(viewsets.ModelViewSet):
     queryset = models.Post.objects.select_related('category', 'author').prefetch_related('images').all()
@@ -92,9 +98,31 @@ class PostImageModelViewSet(viewsets.ModelViewSet):
     def get_serializer_context(self):
         return {'post_id': self.kwargs['post_pk']}
     
-    def  perform_create(self, serializer):
-        serializer.save(post_id = self.kwargs['post_pk'])
+    def perform_create(self, serializer):
+        file_obj = self.request.FILES.get('image')
 
+        # 2. Save the database record WITHOUT the image file
+        # By passing image=None, we stop the "TypeError" because 
+        # the serializer won't try to save the file object to the CharField.
+        instance = serializer.save(image=None)
+
+        if file_obj:
+            # 3. Create the local folder
+            tmp_dir = os.path.join(settings.MEDIA_ROOT, 'tmp')
+            os.makedirs(tmp_dir, exist_ok=True)
+
+            # 4. Generate the unique local path
+            file_extension = os.path.splitext(file_obj.name)[1]
+            unique_name = f"post_{instance.id}_{uuid.uuid4()}{file_extension}"
+            tmp_path = os.path.join(tmp_dir, unique_name)
+
+            # 5. Write the binary bits to your local disk
+            with default_storage.open(tmp_path, 'wb+') as destination:
+                for chunk in file_obj.chunks():
+                    destination.write(chunk)
+
+            # 6. Tell Celery: "Here is the DB ID and the file path, go!"
+            upload_post_image_task.delay(instance.id, tmp_path)
 class DraftPostModelViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.PostSerializer
 

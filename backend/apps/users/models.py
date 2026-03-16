@@ -13,7 +13,7 @@ class CustomUser(AbstractUser):
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile',)
     bio = models.TextField(blank=True, null=True)
-    profile_picture = CloudinaryField('image', folder='users/avatars/', overwrite= True)
+    profile_picture = models.CharField(max_length=255, blank=True, null=True)
     role = models.CharField(max_length=100, default="Member", db_index=True)
     birth_date = models.DateField(blank=True, null=True)
     is_verified = models.BooleanField(default=False, db_index=True)

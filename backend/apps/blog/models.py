@@ -75,6 +75,9 @@ class Post(models.Model):
 
 class PostImages(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='images')
-    image = CloudinaryField('image', folder='blog/images/', overwrite= True)
+    image = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-created_at']
 
     
