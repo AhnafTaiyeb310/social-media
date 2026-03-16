@@ -102,8 +102,6 @@ class PostImageModelViewSet(viewsets.ModelViewSet):
         file_obj = self.request.FILES.get('image')
 
         # 2. Save the database record WITHOUT the image file
-        # By passing image=None, we stop the "TypeError" because 
-        # the serializer won't try to save the file object to the CharField.
         instance = serializer.save(image=None)
 
         if file_obj:

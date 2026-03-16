@@ -4,25 +4,36 @@ from . import models
 
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField()
+    likes_count = serializers.IntegerField(source='likes.count', read_only=True)
+    replies = serializers.SerializerMethodField() # Recursive replies
+    is_liked = serializers.SerializerMethodField()
+
     class Meta:
         model = models.Comment
         fields = ['id', 
                 'content', 
-                'guest_name', 
-                'guest_email', 
                 'status', 
                 'created_at', 
                 'updated_at',
                 'parent',
                 'author',
-                'post',
+                'likes_count',
+                'is_liked',
+                'replies',
                 ]
-        read_only_fields = [
-            'created_at', 
-            'updated_at',
-            'author',
-            'post',
-        ]
+        read_only_fields = ['created_at', 'updated_at', 'author']
+
+    def get_replies(self, obj):
+        # Only show first level of replies to prevent infinite deep recursion
+        # but the recursive call handles further nesting
+        serializer = CommentSerializer(obj.replies.all(), many=True, context=self.context)
+        return serializer.data
+
+    def get_is_liked(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.likes.filter(user=request.user).exists()
+        return False
 
     def validate(self, attrs):
         request = self.context.get('request')
