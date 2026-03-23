@@ -70,7 +70,7 @@ CORS_ALLOW_HEADERS = [
     'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
 ]
 
-CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost:8000,http://127.0.0.1:8000').split(',')
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost:3000,http://127.0.0.1:3000').split(',')
 
 # -------------------------------
 # Application definition
@@ -102,11 +102,12 @@ EXTERNAL_APPS = [
     'django_celery_beat',
     
     #Auth
-    "allauth",
-    "allauth.account",
-    "allauth.socialaccount",
-    "allauth.headless",
-    "allauth.usersessions",
+    'allauth',
+    'allauth.account',
+    'allauth.headless',  
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google', 
+    'allauth.socialaccount.providers.facebook', 
 
     # Local Dynamic Apps
     
@@ -233,6 +234,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # JWT Configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
         "DEFAULT_FILTER_BACKENDS": [
@@ -250,8 +252,11 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_COOKIE' : 'access',
+    'AUTH_COOKIE_REFRESH' : 'refresh'
 }
 
+SITE_ID = 1
 AUTHENTICATION_BACKENDS = ("allauth.account.auth_backends.AuthenticationBackend",)
 AUTH_USER_MODEL = "users.CustomUser"
 
@@ -262,24 +267,62 @@ ACCOUNT_LOGIN_BY_CODE_ENABLED = False
 ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = False
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 
-HEADLESS_ONLY = True
-HEADLESS_FRONTEND_URLS = {
-    "account_confirm_email": "http://localhost:3000/account/verify-email/{key}",
+
+# --- Allauth Headless / Security (Browser BFF Strategy) ---
+ALLAUTH_HEADLESS_ONLY = True
+ALLAUTH_HEADLESS_ADAPTER = 'apps.users.adapter.CustomHeadlessAdapter'
+# This tells allauth to enable the /browser/ endpoints
+ALLAUTH_HEADLESS = {
+    "CONNECTION": {
+        "CLIENTS": ["browser"],
+    }
 }
-HEADLESS_SERVE_SPECIFICATION = True
-
-# --- Allauth Headless / Security (Cookie Based) ---
-# For Mobile, you can use SimpleJWT or these Headless endpoints which 
-# return tokens in JSON if no cookie is provided.
-
+# Security / Session Settings
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = not DEBUG # Only True in production
+SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SAMESITE = 'Lax'
-
-# Allow cross-site cookies if the frontend is on a different domain
-CSRF_COOKIE_HTTPONLY = False  # Must be False so JS can read the token for the CSRF header
-CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False  # Must be False so JS can read for headers
 CSRF_COOKIE_SECURE = not DEBUG
+
+# Headless Routing
+ALLAUTH_HEADLESS_FRONTEND_URLS = {
+    # Existing URLs
+    "account_dashboard": "http://localhost:3000/dashboard",
+    "account_signup": "http://localhost:3000/auth/signup",
+    
+    # REQUIRED for Social Auth: Where to go if login fails
+    "socialaccount_login_error": "http://localhost:3000/auth/login-error",
+    
+    # Highly recommended additions for email/password flows
+    "account_confirm_email": "http://localhost:3000/auth/verify-email/{key}",
+    "account_reset_password_from_key": "http://localhost:3000/auth/password-reset/confirm/{key}",
+}
+
+# Social Account Configuration
+SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': config('GOOGLE_CLIENT_ID'),
+            'secret': config('GOOGLE_CLIENT_SECRET'),
+            'key': ''
+        },
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+    },
+    'facebook': {
+        'METHOD': 'oauth2',
+        'SDK_URL': '//connect.facebook.net/{locale}/sdk.js',
+        'SCOPE': ['email', 'public_profile'],
+        'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
+        'APP': {
+            'client_id': config("FACEBOOK_APP_ID"),
+            'secret': config("FACEBOOK_APP_SECRET"),
+            'key': ''
+        }
+    }
+}
 
 # from corsheaders.defaults import default_headers
 

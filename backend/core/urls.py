@@ -45,7 +45,6 @@ def redirect_to_docs(request):
 from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -56,12 +55,8 @@ urlpatterns = [
     path("", include("apps.blog.urls")),
     path("", include("apps.tags.urls")),
 
-    # Simple JWT (For Mobile/Direct API usage)
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
-    # Allauth Headless (For Web/Interactive Auth)
-    # This provides endpoints like /_allauth/headless/account/login
+    # Allauth Headless (BFF Authentication Strategy)
+    path('accounts/', include('allauth.urls')),
     path("_allauth/", include("allauth.headless.urls")),
 
     # API Documentation
