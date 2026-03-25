@@ -1,7 +1,8 @@
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import QueryProviders from "@/providers/queryProvider";
-import AuthProvider from "@/providers/auth-provider"; // Our new wrapper
+import AuthProvider from "@/providers/authProvider";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,10 +22,14 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <QueryProviders>
           <AuthProvider>
-            {children} {/* ✅ Pages stay as Server Components! */}
+            <GoogleOAuthProvider clientId="829487265928-efrmcuh6l185o102f4576eoqmv7dbfdh.apps.googleusercontent.com">
+              {children}
+            </GoogleOAuthProvider>
           </AuthProvider>
         </QueryProviders>
       </body>

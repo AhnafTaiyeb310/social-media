@@ -12,8 +12,6 @@ import uuid
 from django.conf import settings
 from .tasks import upload_profile_pic_task
 
-# Create your views here.
-
 class ProfileViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin, RetrieveModelMixin):
     queryset = models.Profile.objects.all()
     serializer_class = serializers.ProfileSerializer
@@ -22,7 +20,7 @@ class ProfileViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin, Retriev
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             return [AllowAny()]
-        if self.action in ['partial_update', 'update']:
+        if self.action in ['partial_update', 'update', 'me']:
             return [IsAuthenticated(), isOwner()]
         if self.action in ['create']:
             return [IsAuthenticated()]
@@ -48,16 +46,23 @@ class ProfileViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin, Retriev
             upload_profile_pic_task.delay(profile.id, tmp_path)
 
     @action(detail=False, methods=['GET', 'PUT', 'PATCH'], permission_classes=[IsAuthenticated])
-    def me(self,request):
-        profile = request.user.profile
-        if request.method == "GET":
-            serializer = serializers.ProfileSerializer(profile)
+    def me(self, request):
+        try:
+            # Get or create profile for the current user
+            profile, created = models.Profile.objects.get_or_create(user=request.user)
+            
+            if request.method == "GET":
+                serializer = serializers.ProfileSerializer(profile)
+                return Response(serializer.data)
+            
+            serializer = serializers.ProfileSerializer(profile, data=request.data, partial=True) 
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
             return Response(serializer.data)
-        
-        serializer = serializers.ProfileSerializer(profile, data=request.data) 
-        serializer.is_valid(raise_exception = True)
-        serializer.save()
-        return Response(serializer.data)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
 class ProfileFollowViewset(GenericViewSet):

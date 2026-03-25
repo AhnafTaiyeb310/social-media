@@ -6,10 +6,35 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = models.CustomUser
-        fields = ['id', 'username', 'first_name', 'last_name']
+        fields = ['id', 'email', 'username', 'first_name', 'last_name']
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = models.CustomUser
+        fields = ['email', 'username', 'first_name', 'last_name', 'password', 'confirm_password']
+
+    def validate(self, data):
+        if data['password'] != data['confirm_password']:
+            raise serializers.ValidationError({"password": "Passwords do not match"})
+        return data
+
+    def create(self, validated_data):
+        validated_data.pop('confirm_password')
+        user = models.CustomUser.objects.create_user(
+            email=validated_data['email'],
+            username=validated_data['username'],
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', ''),
+            password=validated_data['password']
+        )
+        return user
 
 class ProfileSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     first_name = serializers.CharField(source='user.first_name', read_only=True)
     last_name = serializers.CharField(source='user.last_name', read_only=True)
@@ -20,7 +45,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Profile
         fields = [
-            'id', 'user_id', 'username', 'first_name', 'last_name', 
+            'id', 'user_id', 'email', 'username', 'first_name', 'last_name', 
             'bio', 'profile_picture_url', 'profile_picture', 'role', 'birth_date', 
             'is_verified', 'twitter_url', 'github_url', 'website_url',
             'followers_count', 'following_count'

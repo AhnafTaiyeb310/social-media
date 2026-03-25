@@ -47,7 +47,7 @@ if not DEBUG:
 
     # Production Security Settings
     SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', cast=bool, default=True)
-    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -62,15 +62,20 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 # CORS Settings
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://localhost:3001').split(',')
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000').split(',')]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
-CORS_ALLOW_HEADERS = [
-    'accept', 'accept-encoding', 'authorization', 'content-type',
-    'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
+from corsheaders.defaults import default_headers
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'x-requested-with',
 ]
 
-CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost:3000,http://127.0.0.1:3000').split(',')
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in config('CSRF_TRUSTED_ORIGINS', default='http://localhost:3000,http://127.0.0.1:3000').split(',')]
+CSRF_COOKIE_NAME = "csrftoken"
+CSRF_COOKIE_HTTPONLY = False
+CSRF_USE_SESSIONS = False
+
 
 # -------------------------------
 # Application definition
@@ -101,13 +106,8 @@ EXTERNAL_APPS = [
     'celery',
     'django_celery_beat',
     
-    #Auth
-    'allauth',
-    'allauth.account',
-    'allauth.headless',  
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google', 
-    'allauth.socialaccount.providers.facebook', 
+    # Auth
+    'rest_framework_simplejwt',
 
     # Local Dynamic Apps
     
@@ -118,12 +118,9 @@ EXTERNAL_APPS = [
     'apps.utils',
 
     'apps.users',
-    # 'apps.users.apps.UsersConfig'
-    
 ]
 
 INSTALLED_APPS += EXTERNAL_APPS
-SITE_ID = 1
 
 # -------------------------------
 # Middleware
@@ -138,7 +135,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -234,10 +230,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # JWT Configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-        "DEFAULT_FILTER_BACKENDS": [
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
@@ -247,92 +245,43 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=31),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
-    'AUTH_COOKIE' : 'access',
-    'AUTH_COOKIE_REFRESH' : 'refresh'
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
+
+# Cookie Settings for JWT Refresh Token
+AUTH_COOKIE = "refresh_token"
+AUTH_COOKIE_HTTP_ONLY = True
+AUTH_COOKIE_SECURE = not DEBUG
+AUTH_COOKIE_SAMESITE = 'Lax'
+AUTH_COOKIE_PATH = '/'
+
+# Social Auth Settings
+GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
+FACEBOOK_APP_ID = config('FACEBOOK_APP_ID', default='')
+FACEBOOK_APP_SECRET = config('FACEBOOK_APP_SECRET', default='')
+
 
 SITE_ID = 1
-AUTHENTICATION_BACKENDS = ("allauth.account.auth_backends.AuthenticationBackend",)
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+)
 AUTH_USER_MODEL = "users.CustomUser"
 
-ACCOUNT_EMAIL_VERIFICATION = "none"
-ACCOUNT_LOGIN_METHODS = {"email"}
-ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
-ACCOUNT_LOGIN_BY_CODE_ENABLED = False
-ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = False
-ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
-
-
-# --- Allauth Headless / Security (Browser BFF Strategy) ---
-ALLAUTH_HEADLESS_ONLY = True
-ALLAUTH_HEADLESS_ADAPTER = 'apps.users.adapter.CustomHeadlessAdapter'
-# This tells allauth to enable the /browser/ endpoints
-ALLAUTH_HEADLESS = {
-    "CONNECTION": {
-        "CLIENTS": ["browser"],
-    }
-}
 # Security / Session Settings
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_HTTPONLY = False  # Must be False so JS can read for headers
-CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = False
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
-# Headless Routing
-ALLAUTH_HEADLESS_FRONTEND_URLS = {
-    # Existing URLs
-    "account_dashboard": "http://localhost:3000/dashboard",
-    "account_signup": "http://localhost:3000/auth/signup",
-    
-    # REQUIRED for Social Auth: Where to go if login fails
-    "socialaccount_login_error": "http://localhost:3000/auth/login-error",
-    
-    # Highly recommended additions for email/password flows
-    "account_confirm_email": "http://localhost:3000/auth/verify-email/{key}",
-    "account_reset_password_from_key": "http://localhost:3000/auth/password-reset/confirm/{key}",
-}
-
-# Social Account Configuration
-SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
-SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {
-            'client_id': config('GOOGLE_CLIENT_ID'),
-            'secret': config('GOOGLE_CLIENT_SECRET'),
-            'key': ''
-        },
-        'SCOPE': ['profile', 'email'],
-        'AUTH_PARAMS': {'access_type': 'online'},
-    },
-    'facebook': {
-        'METHOD': 'oauth2',
-        'SDK_URL': '//connect.facebook.net/{locale}/sdk.js',
-        'SCOPE': ['email', 'public_profile'],
-        'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
-        'APP': {
-            'client_id': config("FACEBOOK_APP_ID"),
-            'secret': config("FACEBOOK_APP_SECRET"),
-            'key': ''
-        }
-    }
-}
-
-# from corsheaders.defaults import default_headers
-
-# CORS_ALLOW_HEADERS = (
-#     *default_headers,
-#     "x-session-token",
-#     "x-email-verification-key",
-#     "x-password-reset-key",
-# )
-
+# Remove allauth adapters and providers
 # Cloudinary settings
 cloudinary.config(
     cloud_name = config("CLOUD_NAME"),

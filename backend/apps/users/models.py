@@ -2,6 +2,8 @@ from django.db import models
 from django.conf import settings 
 from django.contrib.auth.models import AbstractUser
 from cloudinary.models import CloudinaryField
+from django.contrib.auth import get_user_model
+
 
 # Create your models here.
 class CustomUser(AbstractUser):
@@ -47,3 +49,20 @@ class Profile(models.Model):
             models.Index(fields=['is_verified']),
             models.Index(fields=['role']),
         ]
+
+
+
+
+User = get_user_model()
+class SocialAccount(models.Model):
+    PROVIDER_CHOICES = (
+        ("google", "Google"),
+        ("facebook", "Facebook"),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="social_accounts")
+    provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES)
+    provider_user_id = models.CharField(max_length=255)
+
+    class Meta:
+        unique_together = ("provider", "provider_user_id")

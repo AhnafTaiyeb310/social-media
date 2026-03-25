@@ -1,48 +1,56 @@
-import { useAuthStore } from "@/store/useAuthStore";
 import axios from "axios";
+import { useAuthStore } from "@/store/useAuthStore";
 
-// Axios Interceptor Instance
-const AxiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_BASE_URL,
-    withCredentials: true
+const api = axios.create({
+    baseURL: "http://127.0.0.1:8000/api/",
+    withCredentials: true,
 });
 
-// Axios Interceptor: Request Method
-AxiosInstance.interceptors.request.use(
-    (config) => config,
+api.interceptors.request.use((config) => {
+    const token = useAuthStore.getState().accessToken;
 
-    (error) => Promise.reject(error),
-    );
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
 
-// Axios Interceptor: Response Method
-AxiosInstance.interceptors.response.use(
-    (response) => {
-        // Can be modified response
-        return response;
-    },
+    return config;
+});
+
+
+api.interceptors.response.use(
+    (res) => res,
     async (error) => {
         const originalRequest = error.config;
 
-        // network error (no response)
-        if (!error.response) {
-            return Promise.reject(error)
-        }
-
-        // unathorized & not retried
-        if(error.response?.status == 401 && !originalRequest._retry) {
+        if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
-            try {
-                await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/token/refresh/`, {}, { withCredentials: true });
-                return AxiosInstance(originalRequest)
-            } catch(refreshError) {
-                useAuthStore.getState().logout();
-                window.location.href = "/login";
-                return Promise.reject(refreshError);
-            }
-        
-        }
-        return Promise.reject(error);
-    }
-)
 
-export default AxiosInstance;
+            try {
+                const res = await axios.post(
+                    "http://127.0.0.1:8000/api/refresh/",
+                    {},
+                    { withCredentials: true },
+                );
+
+                const newAccess = res.data.access;
+
+                useAuthStore.getState().setAccessToken(newAccess);
+
+                originalRequest.headers.Authorization = `Bearer ${newAccess}`;
+
+                return api(originalRequest);
+            } catch (err) {
+                useAuthStore.getState().logout();
+            }
+        }
+
+        return Promise.reject(error);
+    },
+);
+
+export const registerUser = async (data) => {
+    const res = await api.post("/register/", data);
+    return res.data;
+};
+
+export default api;

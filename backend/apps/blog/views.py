@@ -93,10 +93,15 @@ class PostImageModelViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.PostImageSerializer
 
     def get_queryset(self):
-        return models.PostImages.objects.filter(post_id = self.kwargs['post_pk'])
+        post_id = self.kwargs.get('post_pk')
+        if post_id:
+            return models.PostImages.objects.filter(post_id = post_id)
+        return models.PostImages.objects.none()
         
     def get_serializer_context(self):
-        return {'post_id': self.kwargs['post_pk']}
+        context = super().get_serializer_context()
+        context['post_id'] = self.kwargs.get('post_pk')
+        return context
     
     def perform_create(self, serializer):
         file_obj = self.request.FILES.get('image')

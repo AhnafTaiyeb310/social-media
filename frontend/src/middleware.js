@@ -1,25 +1,39 @@
 import { NextResponse } from 'next/server';
-    export function middleware(request) {
+
+export function middleware(request) {
     const { pathname } = request.nextUrl;
-    const token = request.cookies.get('access')?.value;
-    
-    // 2. Define Route types
-    const isPublicRoute = pathname.startsWith('/login') || pathname.startsWith('/register');
-    const isAsset = pathname.startsWith('/_next') || pathname.includes('/favicon.ico');
-    
-    // 3. Redirect Logic
-    if (isAsset) return NextResponse.next();
-     // If user is NOT logged in and trying to access a protected route
-    if (!token && !isPublicRoute) {
-    return NextResponse.redirect(new URL('/login', request.url));
-    }
-     // If user IS logged in and trying to access login/register
-    if (token && isPublicRoute) {
-    return NextResponse.redirect(new URL('/', request.url));
-    }
+
+    // 1. Skip assets entirely
+    if (
+        pathname.startsWith('/_next') || 
+        pathname.startsWith('/static') || 
+        pathname.includes('/favicon.ico')
+    ) {
         return NextResponse.next();
+    }
+
+    // 2. Check for Session (HttpOnly cookie)
+    const sessionid = request.cookies.get('sessionid')?.value;
+    
+    // 3. Simple Route Flags
+    const isPublic = pathname === '/login' || pathname === '/register' || pathname.startsWith('/auth');
+
+    // 4. Protection Logic
+    if (!sessionid && !isPublic) {
+        // Force redirect to login if no session is present
+        const loginUrl = new URL('/login', request.url);
+        return NextResponse.redirect(loginUrl);
+    }
+
+    if (sessionid && isPublic) {
+        // If logged in, don't let them see /login
+        return NextResponse.redirect(new URL('/', request.url));
+    }
+
+    return NextResponse.next();
 }
-   // Ensure middleware runs on all routes except static files
+
+// Ensure the middleware runs on all relevant paths
 export const config = {
-    matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+    matcher: ['/', '/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
