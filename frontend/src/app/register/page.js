@@ -43,34 +43,34 @@ export default function RegisterPage() {
 
   const mutation = useMutation({
     mutationFn: registerUser,
-    onSuccess: (data) => {
+  });
+
+  const onSubmit = async (data) => {
+    try {
+      const res = await mutation.mutateAsync(data);
       console.log("REGISTRATION_SUCCESS");
-      if (data.access) {
-        setAccessToken(data.access);
-        if (data.user) {
-            setAuth(data.user);
+      if (res.access) {
+        setAccessToken(res.access);
+        if (res.user) {
+            setAuth(res.user);
         }
         router.replace("/");
         router.refresh();
       } else {
         router.push("/login");
       }
-    },
-    onError: (err) => {
+    } catch (err) {
       console.error("REGISTER_ERROR:", err.response?.data);
-      // Handle Django's potential field-specific errors
       const data = err.response?.data;
-      if (data) {
+      if (data && typeof data === 'object') {
         Object.keys(data).forEach((key) => {
           setError(key, { message: Array.isArray(data[key]) ? data[key][0] : data[key] });
         });
       } else {
         setError("root", { message: "Something went wrong. Please try again." });
       }
-    },
-  });
-
-  const onSubmit = (data) => mutation.mutate(data);
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-24 bg-zinc-50 dark:bg-black">

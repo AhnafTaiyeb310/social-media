@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import CreateModelMixin, UpdateModelMixin, RetrieveModelMixin
@@ -89,6 +90,17 @@ class ProfileFollowViewset(GenericViewSet):
             "followings_count": models.Profile.objects.filter(followers__in= [profile.user]).count()
         }, status=status.HTTP_200_OK)
         
+    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated])
+    def suggestions(self, request):
+        # Return profiles that the current user is not following
+        # and it's not the user's own profile
+        user = request.user
+        suggestions = models.Profile.objects.exclude(
+            Q(followers=user) | Q(user=user)
+        ).order_by('?')[:5]
+        
+        serializer = serializers.ProfileListSerializer(suggestions, many=True)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['GET'], permission_classes=[AllowAny])
     def followers_list(self, request, pk= None):

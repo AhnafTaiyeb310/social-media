@@ -35,26 +35,24 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data) => {
-    mutation.mutate(data, {
-      onSuccess: () => {
-        router.replace("/");
-        router.refresh();
-      },
-      onError: (err) => {
-        console.error("LOGIN_ERROR:", err.response?.data);
-        const data = err.response?.data;
-        if (data && typeof data === 'object') {
-          Object.keys(data).forEach((key) => {
-            setError(key, { message: Array.isArray(data[key]) ? data[key][0] : data[key] });
-          });
-          if (data.error) {
-              setError("root", { message: data.error });
-          }
-        } else {
-          setError("root", { message: "Invalid email or password" });
+    try {
+      await mutation.mutateAsync(data);
+      router.replace("/");
+      router.refresh();
+    } catch (err) {
+      console.error("LOGIN_ERROR:", err.response?.data);
+      const data = err.response?.data;
+      if (data && typeof data === 'object') {
+        Object.keys(data).forEach((key) => {
+          setError(key, { message: Array.isArray(data[key]) ? data[key][0] : data[key] });
+        });
+        if (data.error) {
+            setError("root", { message: data.error });
         }
-      },
-    });
+      } else {
+        setError("root", { message: "Invalid email or password" });
+      }
+    }
   };
 
   return (
@@ -99,7 +97,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-sm text-zinc-500 mt-4">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/register" className="text-blue-600 hover:underline">
             Register
           </Link>

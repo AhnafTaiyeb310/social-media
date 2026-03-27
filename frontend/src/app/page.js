@@ -1,60 +1,74 @@
 "use client";
 
 import { useAuthStore } from "@/store/useAuthStore";
-import api from "../lib/axios";
-import { useRouter } from "next/navigation";
+import { Navbar } from "@/components/layout/navbar";
+import { LeftSidebar } from "@/components/layout/sidebar-left";
+import { RightSidebar } from "@/components/layout/sidebar-right";
+import { CreatePost } from "@/features/posts/components/create-post";
+import { PostCard } from "@/features/posts/components/post-card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProtectedRoute from "@/features/auth/components/protectedRoutes";
+import { useFeed } from "@/features/posts/hooks/usePosts";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Home() {
-    const { user, logout } = useAuthStore();
-    const router = useRouter();
+  const { user } = useAuthStore();
+  const { data, isLoading, error } = useFeed();
 
-    const handleLogout = async () => {
-        try {
-            await api.post("/logout/");
-            console.log("Successfully logged out from server");
-        } catch (err) {
-            console.warn("Logout request failed, clearing local state anyway:", err);
-        } finally {
-            logout();
-            router.push("/login");
-        }
-    };
+  const posts = data?.results || [];
 
-    return (
-        <ProtectedRoute>
-            <div className="flex min-h-screen flex-col items-center justify-center space-y-4 p-24 bg-zinc-50 dark:bg-black">
-                <div className="p-8 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 text-center w-full max-w-md">
-                    <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
-                    {user ? (
-                        <div className="space-y-6">
-                            <div className="flex flex-col items-center gap-2">
-                                <div className="h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 text-2xl font-bold">
-                                    {user.first_name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-xl font-semibold text-black dark:text-white">
-                                        {user.first_name} {user.last_name}
-                                    </p>
-                                    <p className="text-zinc-500 text-sm">{user.email}</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={handleLogout}
-                                className="w-full rounded-lg bg-red-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 transition-colors"
-                            >
-                                Sign Out
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="animate-pulse space-y-4">
-                            <div className="mx-auto h-16 w-16 rounded-full bg-zinc-200 dark:bg-zinc-800"></div>
-                            <div className="h-4 w-3/4 mx-auto bg-zinc-200 dark:bg-zinc-800 rounded"></div>
-                            <div className="h-10 w-full bg-zinc-200 dark:bg-zinc-800 rounded-lg"></div>
-                        </div>
-                    )}
-                </div>
+  return (
+    <ProtectedRoute>
+      <div className="min-h-screen bg-[#F8FAFC] dark:bg-black transition-colors">
+        <Navbar />
+        
+        <main className="container mx-auto px-4 py-6">
+          <div className="flex justify-center gap-6">
+            {/* Left Sidebar - Navigation & Tags */}
+            <LeftSidebar />
+
+            {/* Main Feed */}
+            <div className="flex-1 max-w-[680px]">
+              <CreatePost />
+
+              <div className="mb-6 flex items-center justify-between">
+                <Tabs defaultValue="relevant" className="w-full">
+                  <TabsList className="grid w-full max-w-[400px] grid-cols-3 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                    <TabsTrigger value="relevant" className="rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-600">Relevant</TabsTrigger>
+                    <TabsTrigger value="latest" className="rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-600">Latest</TabsTrigger>
+                    <TabsTrigger value="top" className="rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-600">Top</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+
+              <div className="space-y-6">
+                {isLoading ? (
+                  <>
+                    <Skeleton className="h-[200px] w-full rounded-2xl" />
+                    <Skeleton className="h-[400px] w-full rounded-2xl" />
+                    <Skeleton className="h-[300px] w-full rounded-2xl" />
+                  </>
+                ) : error ? (
+                  <div className="text-center py-10 text-red-500 bg-red-50 dark:bg-red-950/20 rounded-2xl border border-red-100 dark:border-red-900/30">
+                    Failed to load posts. Please try again later.
+                  </div>
+                ) : posts.length > 0 ? (
+                  posts.map(post => (
+                    <PostCard key={post.id} post={post} />
+                  ))
+                ) : (
+                  <div className="text-center py-20 text-zinc-500 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                    No posts yet. Follow some people or create your own!
+                  </div>
+                )}
+              </div>
             </div>
-        </ProtectedRoute>
-    );
+
+            {/* Right Sidebar - Suggestions & Trending */}
+            <RightSidebar />
+          </div>
+        </main>
+      </div>
+    </ProtectedRoute>
+  );
 }

@@ -13,19 +13,12 @@ export const useLogin = () => {
             const res = await api.post("/login/", data);
             return res.data;
         },
-        onSuccess: async (data) => {
+        onSuccess: (data) => {
             // 1. Store token in store
             setAccessToken(data.access);
             
-            // 2. Fetch the user profile (me) using the new token
-            try {
-                const userData = await getMe();
-                setAuth(userData);
-                // 3. Invalidate query cache for "me"
-                queryClient.invalidateQueries({ queryKey: ["me"] });
-            } catch (err) {
-                console.error("FAILED_TO_FETCH_ME_AFTER_LOGIN:", err);
-            }
+            // 2. Invalidate query cache for "me" to trigger a refetch
+            queryClient.invalidateQueries({ queryKey: ["me"] });
         },
     });
 };

@@ -69,13 +69,13 @@ class PostModelViewSet(viewsets.ModelViewSet):
     def feed(self, request):
         user = request.user
         posts = models.Post.objects.filter( 
-            Q(author__in = user.following.values_list('user', flat=True))  |  
+            Q(author__profile__in = user.following_profiles.all())  |  
             Q(author_id = user.id)
             ).select_related('author', 'category'
             ).prefetch_related("images", "likes__user"
             ).annotate(
-                likes_count = Count('likes'),
-                comments_count = Count('comments'),
+                likes_count = Count('likes', distinct=True),
+                comments_count = Count('comments', distinct=True),
                 is_liked = Exists(
                     PostLike.objects.filter(
                         user = user,
@@ -83,7 +83,13 @@ class PostModelViewSet(viewsets.ModelViewSet):
                     )
                 )
             ).order_by('-created_at')
-        serializer = serializers.PostSerializer(posts, many=True)
+        
+        page = self.paginate_queryset(posts)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(posts, many=True)
         return Response(serializer.data)
 
 
@@ -106,26 +112,16 @@ class PostImageModelViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         file_obj = self.request.FILES.get('image')
 
-        # 2. Save the database record WITHOUT the image file
-        instance = serializer.save(image=None)
-
         if file_obj:
-            # 3. Create the local folder
-            tmp_dir = os.path.join(settings.MEDIA_ROOT, 'tmp')
-            os.makedirs(tmp_dir, exist_ok=True)
-
-            # 4. Generate the unique local path
-            file_extension = os.path.splitext(file_obj.name)[1]
-            unique_name = f"post_{instance.id}_{uuid.uuid4()}{file_extension}"
-            tmp_path = os.path.join(tmp_dir, unique_name)
-
-            # 5. Write the binary bits to your local disk
-            with default_storage.open(tmp_path, 'wb+') as destination:
-                for chunk in file_obj.chunks():
-                    destination.write(chunk)
-
-            # 6. Tell Celery: "Here is the DB ID and the file path, go!"
-            upload_post_image_task.delay(instance.id, tmp_path)
+            try:
+                import cloudinary.uploader
+                upload_result = cloudinary.uploader.upload(file_obj, folder="blog/images/")
+                serializer.save(image=upload_result['public_id'])
+            except Exception as e:
+                print(f"CLOUDINARY_UPLOAD_ERROR: {e}")
+                serializer.save(image=None)
+        else:
+            serializer.save(image=None)
 class DraftPostModelViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.PostSerializer
 

@@ -7,6 +7,7 @@ from .socials_auth_views import GoogleLoginView, FacebookLoginView
 # Profile and User ViewSets
 router = routers.DefaultRouter()
 router.register('profile', views.ProfileViewSet, basename='profile')
+router.register('profiles', views.ProfileFollowViewset, basename='profiles')
 
 urlpatterns = [
     # Auth endpoints
