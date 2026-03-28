@@ -37,7 +37,7 @@ export function RightSidebar() {
           ) : suggestions?.length > 0 ? (
             suggestions.map((person) => (
               <div key={person.id} className="flex items-center justify-between gap-3 group">
-                <div className="flex items-center gap-3">
+                <Link href={`/profile/${person.username}`} className="flex items-center gap-3">
                   <Avatar className="h-10 w-10 ring-2 ring-white transition-transform group-hover:scale-105">
                     <AvatarImage src={person.profile_picture_url} />
                     <AvatarFallback className="bg-blue-100 text-blue-600 font-medium">
@@ -52,7 +52,7 @@ export function RightSidebar() {
                       {person.first_name} {person.last_name}
                     </span>
                   </div>
-                </div>
+                </Link>
                 <Button 
                   size="sm" 
                   variant="secondary" 

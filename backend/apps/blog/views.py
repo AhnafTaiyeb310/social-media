@@ -63,6 +63,23 @@ class PostModelViewSet(viewsets.ModelViewSet):
                 Q(id__in=tagged_post_ids)
             ).distinct()
 
+        # 3. Handle standard filters (author, category, status, username)
+        author_id = self.request.query_params.get('author')
+        if author_id:
+            queryset = queryset.filter(author_id=author_id)
+            
+        username = self.request.query_params.get('username')
+        if username:
+            queryset = queryset.filter(author__username=username)
+            
+        category_id = self.request.query_params.get('category')
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+            
+        status = self.request.query_params.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+
         return queryset
 
     def perform_create(self, serializer):

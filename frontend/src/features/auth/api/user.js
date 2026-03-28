@@ -10,6 +10,20 @@ export const getSuggestions = async () => {
     return res.data;
 };
 
+export const getProfile = async (username) => {
+    const res = await api.get(`/profile/${username}/`);
+    return res.data;
+};
+
+export const updateProfile = async (data) => {
+    const res = await api.patch("/profile/me/", data, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+    return res.data;
+};
+
 export const followProfile = async (id) => {
     const res = await api.post(`/profiles/${id}/follow/`);
     return res.data;

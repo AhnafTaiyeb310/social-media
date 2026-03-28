@@ -30,6 +30,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 function CommentItem({ comment, postId, isReply = false }) {
   const { user: currentUser } = useAuthStore();
@@ -75,20 +76,22 @@ function CommentItem({ comment, postId, isReply = false }) {
   return (
     <div className={cn("flex flex-col gap-2", isReply ? "ml-10 mt-2" : "mt-4")}>
       <div className="flex gap-3">
-        <Avatar className={cn("ring-2 ring-blue-500/5", isReply ? "h-7 w-7" : "h-9 w-9")}>
-          <AvatarImage src={author.profile_picture_url} />
-          <AvatarFallback className="bg-zinc-100 text-[10px] font-bold">
-            {author.username?.[0]?.toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        <Link href={`/profile/${author.username}`}>
+            <Avatar className={cn("ring-2 ring-blue-500/5 cursor-pointer transition-transform hover:scale-105", isReply ? "h-7 w-7" : "h-9 w-9")}>
+            <AvatarImage src={author.profile_picture_url} />
+            <AvatarFallback className="bg-zinc-100 text-[10px] font-bold">
+                {author.username?.[0]?.toUpperCase()}
+            </AvatarFallback>
+            </Avatar>
+        </Link>
         
         <div className="flex-1">
           <div className="group relative inline-block max-w-full">
             <div className="rounded-2xl bg-zinc-100 dark:bg-zinc-800 px-4 py-2">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-zinc-900 dark:text-white">
+                <Link href={`/profile/${author.username}`} className="text-xs font-bold text-zinc-900 dark:text-white hover:text-blue-600 transition-colors">
                   {author.username}
-                </span>
+                </Link>
                 {comment.author_profile?.is_verified && (
                     <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
                 )}

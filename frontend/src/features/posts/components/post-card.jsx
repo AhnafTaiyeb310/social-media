@@ -54,6 +54,11 @@ export function PostCard({ post, full = false }) {
     if (!full) router.push(`/posts/${post.id}`);
   };
 
+  const handleNavigateToProfile = (e) => {
+    e.stopPropagation();
+    router.push(`/profile/${author.username}`);
+  };
+
   const likeMutation = useMutation({
     mutationFn: () => likePost(post.id),
     onSuccess: (data) => {
@@ -94,7 +99,10 @@ export function PostCard({ post, full = false }) {
       <Card className="overflow-hidden rounded-2xl border-none shadow-sm hover:shadow-md transition-all duration-300 dark:bg-zinc-900 group">
         <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 ring-2 ring-blue-500/10">
+            <Avatar 
+                onClick={handleNavigateToProfile}
+                className="h-10 w-10 ring-2 ring-blue-500/10 cursor-pointer transition-transform hover:scale-105"
+            >
               <AvatarImage src={author.profile_picture_url} />
               <AvatarFallback className="bg-blue-600 text-white font-bold">
                 {author.username?.[0]?.toUpperCase()}
@@ -102,7 +110,10 @@ export function PostCard({ post, full = false }) {
             </Avatar>
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-zinc-900 dark:text-white group-hover:text-blue-600 transition-colors cursor-pointer">
+                <span 
+                    onClick={handleNavigateToProfile}
+                    className="text-sm font-bold text-zinc-900 dark:text-white hover:text-blue-600 transition-colors cursor-pointer"
+                >
                   {author.username}
                 </span>
                 {author.is_verified && (
