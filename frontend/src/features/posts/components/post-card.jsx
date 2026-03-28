@@ -14,7 +14,8 @@ import {
   Clock,
   ExternalLink,
   Edit2,
-  Trash2
+  Trash2,
+  X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -32,9 +33,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CreatePost } from "./create-post";
 
-export function PostCard({ post }) {
+import { useRouter } from "next/navigation";
+
+export function PostCard({ post, full = false }) {
+  const router = useRouter();
   const { user: currentUser } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState(null);
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
   const [likesCount, setLikesCount] = useState(post.likes_count || 0);
 
@@ -44,6 +49,10 @@ export function PostCard({ post }) {
 
   const author = post.author_profile || { username: post.author };
   const createdAt = post.created_at ? formatDistanceToNow(new Date(post.created_at), { addSuffix: true }) : "recently";
+
+  const handleNavigateToDetail = () => {
+    if (!full) router.push(`/posts/${post.id}`);
+  };
 
   const likeMutation = useMutation({
     mutationFn: () => likePost(post.id),
@@ -76,6 +85,7 @@ export function PostCard({ post }) {
   }
 
   return (
+    <>
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -140,22 +150,66 @@ export function PostCard({ post }) {
         </CardHeader>
 
         <CardContent className="p-4 pt-2">
-          <h3 className="mb-2 text-lg font-bold leading-tight text-zinc-900 dark:text-white group-hover:text-blue-600 transition-colors cursor-pointer">
+          <h3 
+            onClick={handleNavigateToDetail}
+            className={cn(
+                "mb-2 text-lg font-bold leading-tight text-zinc-900 dark:text-white transition-colors",
+                !full && "hover:text-blue-600 cursor-pointer"
+            )}
+          >
             {post.title}
           </h3>
-          <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 line-clamp-3">
+          <div 
+            onClick={handleNavigateToDetail}
+            className={cn(
+                "text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap",
+                !full ? "line-clamp-3 cursor-pointer" : ""
+            )}
+          >
             {post.content}
-          </p>
+          </div>
           
-          {post.images && post.images.length > 0 && post.images[0].image_url && (
-            <div className="mt-4 overflow-hidden rounded-xl border border-zinc-100 dark:border-zinc-800 relative aspect-video">
-              <Image 
-                src={post.images[0].image_url} 
-                alt="Post content" 
-                fill
-                unoptimized
-                className="w-full object-cover transition-transform duration-500 hover:scale-105"
-              />
+          {/* Multiple Images Grid */}
+          {post.images && post.images.length > 0 && (
+            <div className={cn(
+              "mt-4 overflow-hidden rounded-xl border border-zinc-100 dark:border-zinc-800 grid gap-1 cursor-pointer",
+              post.images.length === 1 ? "grid-cols-1" : "grid-cols-2"
+            )}>
+              {post.images.slice(0, 4).map((img, index) => (
+                <div 
+                  key={img.id} 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedImageUrl(img.image_url);
+                  }}
+                  className={cn(
+                    "relative bg-zinc-100 dark:bg-zinc-800 overflow-hidden",
+                    post.images.length === 1 ? "aspect-video" : 
+                    post.images.length === 3 && index === 0 ? "row-span-2 aspect-auto" : "aspect-square"
+                  )}
+                >
+                  {img.image_url ? (
+                    <>
+                      <Image 
+                        src={img.image_url} 
+                        alt={`Post content ${index + 1}`} 
+                        fill
+                        unoptimized
+                        className="object-cover transition-transform duration-500 hover:scale-105"
+                      />
+                      {index === 3 && post.images.length > 4 && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center pointer-events-none">
+                          <span className="text-white text-xl font-bold">+{post.images.length - 4}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-300 border-t-blue-600" />
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
 
@@ -183,7 +237,12 @@ export function PostCard({ post }) {
               <span className="text-xs font-semibold">{likesCount}</span>
             </Button>
             
-            <Button variant="ghost" size="sm" className="gap-2 rounded-full h-9 px-3 text-zinc-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20">
+            <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleNavigateToDetail}
+                className="gap-2 rounded-full h-9 px-3 text-zinc-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20"
+            >
               <MessageSquare className="h-4 w-4" />
               <span className="text-xs font-semibold">{post.comments_count || 0}</span>
             </Button>
@@ -199,5 +258,48 @@ export function PostCard({ post }) {
         </CardFooter>
       </Card>
     </motion.div>
+
+    {/* Image Lightbox */}
+    <AnimatePresence>
+      {selectedImageUrl && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 md:p-10 h-screen w-screen overflow-hidden"
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+          onClick={() => setSelectedImageUrl(null)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="relative max-h-full max-w-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute -top-12 right-0 text-white hover:bg-white/20 rounded-full h-10 w-10 z-[110]"
+              onClick={() => setSelectedImageUrl(null)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+            <div className="relative overflow-hidden rounded-lg shadow-2xl">
+                <Image
+                src={selectedImageUrl}
+                alt="Full preview"
+                width={1200}
+                height={800}
+                unoptimized
+                className="max-h-[85vh] w-auto h-auto object-contain"
+                />
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   );
 }
+

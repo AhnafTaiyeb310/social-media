@@ -37,8 +37,11 @@ export function CreatePost({ postToEdit = null, onCancel = null }) {
   const [scheduledFor, setScheduledFor] = useState(postToEdit?.scheduled_for ? new Date(postToEdit.scheduled_for).toISOString().slice(0, 16) : "");
   
   const [showAdvanced, setShowAdvanced] = useState(isEditing);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(isEditing && postToEdit.images?.[0]?.image_url ? postToEdit.images[0].image_url : null);
+  
+  // Multiple images support
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState(isEditing && postToEdit.images ? postToEdit.images.map(img => img.image_url) : []);
+  
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -66,22 +69,30 @@ export function CreatePost({ postToEdit = null, onCancel = null }) {
     setCategoryId("");
     setSelectedTags([]);
     setScheduledFor("");
-    setSelectedImage(null);
-    setImagePreview(null);
+    setSelectedImages([]);
+    setImagePreviews([]);
   };
 
   if (!user) return null;
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      setSelectedImages(prev => [...prev, ...files]);
+      
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreviews(prev => [...prev, reader.result]);
+        };
+        reader.readAsDataURL(file);
+      });
     }
+  };
+
+  const removeImage = (index) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const toggleTag = (tagId) => {
@@ -91,7 +102,7 @@ export function CreatePost({ postToEdit = null, onCancel = null }) {
   };
 
   const handlePost = () => {
-    if (!content.trim() && !selectedImage && !title.trim()) return;
+    if (!content.trim() && selectedImages.length === 0 && !title.trim()) return;
 
     const formData = new FormData();
     formData.append("title", title || content.slice(0, 50) || "Untitled Post");
@@ -106,12 +117,9 @@ export function CreatePost({ postToEdit = null, onCancel = null }) {
       formData.append("tag_ids", tagId);
     });
 
-    if (selectedImage) {
-      // Append as multiple if we ever support multiple, 
-      // but even for one, appending to the same key multiple times 
-      // is how multipart lists work.
-      formData.append("uploaded_images", selectedImage);
-    }
+    selectedImages.forEach(imageFile => {
+      formData.append("uploaded_images", imageFile);
+    });
 
     mutation.mutate(formData);
   };
@@ -152,22 +160,21 @@ export function CreatePost({ postToEdit = null, onCancel = null }) {
               className="w-full resize-none bg-transparent text-lg outline-none placeholder:text-zinc-400 dark:text-white min-h-[120px]"
             ></textarea>
 
-            {imagePreview && (
-              <div className="relative mt-2 rounded-xl overflow-hidden border border-zinc-100 dark:border-zinc-800">
-                <Button 
-                  variant="secondary" 
-                  size="icon" 
-                  className="absolute top-2 right-2 h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/70 z-10"
-                  onClick={() => {
-                    setSelectedImage(null);
-                    setImagePreview(null);
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-                <div className="relative aspect-video">
-                  <Image src={imagePreview} alt="Preview" fill className="object-cover" unoptimized />
-                </div>
+            {imagePreviews.length > 0 && (
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {imagePreviews.map((preview, index) => (
+                  <div key={index} className="relative rounded-xl overflow-hidden border border-zinc-100 dark:border-zinc-800 aspect-video">
+                    <Button 
+                      variant="secondary" 
+                      size="icon" 
+                      className="absolute top-2 right-2 h-6 w-6 rounded-full bg-black/50 text-white hover:bg-black/70 z-10"
+                      onClick={() => removeImage(index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                    <Image src={preview} alt={`Preview ${index}`} fill className="object-cover" unoptimized />
+                  </div>
+                ))}
               </div>
             )}
 
@@ -276,6 +283,7 @@ export function CreatePost({ postToEdit = null, onCancel = null }) {
                   className="hidden" 
                   ref={fileInputRef}
                   onChange={handleImageChange}
+                  multiple
                 />
                 <Button 
                   variant="ghost" 
@@ -284,7 +292,7 @@ export function CreatePost({ postToEdit = null, onCancel = null }) {
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <ImageIcon className="h-4 w-4" />
-                  <span className="hidden sm:inline text-xs font-semibold">Photo</span>
+                  <span className="hidden sm:inline text-xs font-semibold">Photos</span>
                 </Button>
                 <Button variant="ghost" size="sm" className="gap-2 rounded-full text-purple-600 hover:bg-purple-50">
                   <Film className="h-4 w-4" />
@@ -308,7 +316,7 @@ export function CreatePost({ postToEdit = null, onCancel = null }) {
                 )}
                 <Button 
                     onClick={handlePost}
-                    disabled={mutation.isPending || (!content.trim() && !selectedImage && !title.trim())}
+                    disabled={mutation.isPending || (!content.trim() && selectedImages.length === 0 && !title.trim())}
                     className="rounded-full bg-blue-600 px-6 hover:bg-blue-700 shadow-md shadow-blue-500/20 gap-2 disabled:opacity-50"
                 >
                     {mutation.isPending ? (

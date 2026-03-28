@@ -8,6 +8,11 @@ from . import models
 class CommentModelViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.CommentSerializer
     
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
     def get_queryset(self):
         post_id = self.kwargs.get('post_pk')
         if not post_id:
@@ -17,7 +22,7 @@ class CommentModelViewSet(viewsets.ModelViewSet):
         queryset = models.Comment.objects.filter(
             post_id = post_id,
             status='approved'
-        ).select_related('author' ,'post').prefetch_related('replies', 'likes')
+        ).select_related('author' ,'post', 'author__profile').prefetch_related('replies', 'likes')
         
         # If user wants a specific comment, don't filter parent
         if self.action == 'retrieve':
@@ -52,10 +57,10 @@ class CommentModelViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         post_id = self.kwargs.get('post_pk')
         if not post_id:
-             # This should not happen in a real request if URLs are correct
              raise ValueError("post_pk is required in the URL")
 
         if self.request.user.is_authenticated:
-            return serializer.save(author= self.request.user, post_id = post_id)
+            # Auto-approve for logged in users
+            return serializer.save(author= self.request.user, post_id = post_id, status='approved')
         else:
             return serializer.save(post_id= post_id)

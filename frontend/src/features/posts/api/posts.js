@@ -5,6 +5,11 @@ export const getPosts = async (params = {}) => {
     return res.data;
 };
 
+export const getPost = async (id) => {
+    const res = await api.get(`/posts/${id}/`);
+    return res.data;
+};
+
 export const getFeed = async () => {
     const res = await api.get("/posts/feed/");
     return res.data;
