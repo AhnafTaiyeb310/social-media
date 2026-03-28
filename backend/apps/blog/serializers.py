@@ -32,7 +32,6 @@ class PostImageSerializer(ModelSerializer):
 
     def get_image_url(self, obj):
         if obj.image:
-            # Generate a clean, secure Cloudinary URL
             return cloudinary.utils.cloudinary_url(obj.image, secure=True)[0]
         return None
 
@@ -64,12 +63,11 @@ class PostSerializer(ModelSerializer):
     is_liked = serializers.BooleanField(read_only=True, default=False)
     
     tags = serializers.SerializerMethodField()
-    tag_ids = serializers.PrimaryKeyRelatedField(
-        queryset = Tag.objects.all(),
-        many = True,
-        required = False,
-        write_only = True,
-        source = 'tags'
+    # Accept a list of strings for tags (names)
+    tag_names = serializers.ListField(
+        child=serializers.CharField(max_length=255),
+        required=False,
+        write_only=True
     )
 
     class Meta:
@@ -95,7 +93,7 @@ class PostSerializer(ModelSerializer):
                 'comments_count',
                 'is_liked',
                 'tags',
-                'tag_ids'
+                'tag_names'
                 ]
         read_only_fields = ['id', 'slug', 'created_at', 'updated_at', 'published_at', 'author']
         
@@ -105,62 +103,61 @@ class PostSerializer(ModelSerializer):
         tagged_items = TaggedItem.objects.filter(content_type=content_type, object_id=obj.id).select_related('tag')
         return [item.tag.tag for item in tagged_items]
 
+    def _handle_tags(self, post, tag_names):
+        if tag_names is None:
+            return
+            
+        from django.contrib.contenttypes.models import ContentType
+        content_type = ContentType.objects.get_for_model(post)
+        
+        # Clear existing tags if any
+        TaggedItem.objects.filter(content_type=content_type, object_id=post.id).delete()
+        
+        for name in tag_names:
+            tag_obj, _ = Tag.objects.get_or_create(tag=name.lower().strip())
+            TaggedItem.objects.get_or_create(
+                tag=tag_obj,
+                content_type=content_type,
+                object_id=post.id
+            )
+
     def _handle_images(self, post, image_data):
         if not image_data:
             return
 
-        print(f"DEBUG: Synchronously uploading {len(image_data)} images for post {post.id}")
         for image_file in image_data:
             try:
-                # Upload directly to Cloudinary (Synchronous fallback for SQLite environment mismatch)
                 upload_result = cloudinary.uploader.upload(
                     image_file, 
                     folder="blog/images/",
                     resource_type="auto"
                 )
-                
-                # Save DB record with public_id
                 models.PostImages.objects.create(
                     post=post, 
                     image=upload_result['public_id']
                 )
-                print(f"DEBUG: Uploaded image {upload_result['public_id']}")
             except Exception as e:
                 print(f"CLOUDINARY_UPLOAD_ERROR: {e}")
                 models.PostImages.objects.create(post=post, image=None)
 
     def create(self, validated_data):
         image_data = validated_data.pop('uploaded_images', []) or []
-        tags_data = validated_data.pop('tags', []) or []
+        tag_names = validated_data.pop('tag_names', [])
 
         with transaction.atomic():
             post = models.Post.objects.create(**validated_data)
             self._handle_images(post, image_data)
-
-            if tags_data:
-                tag_instances = [
-                    TaggedItem(tag = tag ,content_object = post)
-                    for tag in tags_data
-                ]
-                TaggedItem.objects.bulk_create(tag_instances)
+            if tag_names:
+                self._handle_tags(post, tag_names)
         return post
 
     def update(self, instance, validated_data):
         image_data = validated_data.pop('uploaded_images', []) or []
-        tags_data = validated_data.pop('tags', []) or []
+        tag_names = validated_data.pop('tag_names', None)
 
         with transaction.atomic():
             post = super().update(instance, validated_data)
             self._handle_images(post, image_data)
-
-            if 'tags' in validated_data or tags_data:
-                from django.contrib.contenttypes.models import ContentType
-                content_type = ContentType.objects.get_for_model(post)
-                TaggedItem.objects.filter(content_type=content_type, object_id=post.id).delete()
-                
-                tag_instances = [
-                    TaggedItem(tag = tag ,content_object = post)
-                    for tag in tags_data
-                ]
-                TaggedItem.objects.bulk_create(tag_instances)
+            if tag_names is not None:
+                self._handle_tags(post, tag_names)
         return post

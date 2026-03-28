@@ -59,7 +59,7 @@ export function LeftSidebar() {
         </div>
         <div className="flex flex-wrap gap-2">
           {tags.map((tag) => (
-            <Link key={tag} href={`/t/${tag}`}>
+            <Link key={tag} href={`/search?tag=${encodeURIComponent(tag)}`}>
               <span className="rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-blue-100 hover:text-blue-600 dark:bg-zinc-800 dark:text-zinc-400">
                 #{tag}
               </span>

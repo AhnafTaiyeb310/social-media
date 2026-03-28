@@ -23,11 +23,47 @@ from .tasks import upload_post_image_task
 class PostModelViewSet(viewsets.ModelViewSet):
     queryset = models.Post.objects.select_related('category', 'author').prefetch_related('images').all()
     serializer_class = serializers.PostSerializer
-    filter_backends = [DjangoFilterBackend,SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['author', 'category', 'status']
     ordering_fields = ['created_at', 'likes_count']
     pagination_class = FeedPagination
-    search_fields = ['title', 'content', 'excerpt']
+
+    def get_queryset(self):
+        queryset = models.Post.objects.select_related('category', 'author').prefetch_related('images').all()
+        
+        # 1. Filter by specific tag if provided (Exact match)
+        tag_name = self.request.query_params.get('tag')
+        if tag_name:
+            from apps.tags.models import TaggedItem
+            from django.contrib.contenttypes.models import ContentType
+            content_type = ContentType.objects.get_for_model(models.Post)
+            post_ids = TaggedItem.objects.filter(
+                content_type=content_type, 
+                tag__tag=tag_name
+            ).values_list('object_id', flat=True)
+            queryset = queryset.filter(id__in=post_ids)
+            
+        # 2. Unified Search (Text OR Tag)
+        search_query = self.request.query_params.get('search')
+        if search_query:
+            from apps.tags.models import TaggedItem
+            from django.contrib.contenttypes.models import ContentType
+            content_type = ContentType.objects.get_for_model(models.Post)
+            
+            # Post IDs where tags match
+            tagged_post_ids = TaggedItem.objects.filter(
+                content_type=content_type,
+                tag__tag__icontains=search_query
+            ).values_list('object_id', flat=True)
+            
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(content__icontains=search_query) |
+                Q(excerpt__icontains=search_query) |
+                Q(id__in=tagged_post_ids)
+            ).distinct()
+
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(author= self.request.user)

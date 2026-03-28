@@ -215,7 +215,14 @@ export function PostCard({ post, full = false }) {
 
           <div className="mt-4 flex flex-wrap gap-2">
             {post.tags?.map((tagName, idx) => (
-              <span key={idx} className="text-xs text-blue-600 hover:underline cursor-pointer">
+              <span 
+                key={idx} 
+                onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/search?tag=${encodeURIComponent(tagName)}`);
+                }}
+                className="text-xs text-blue-600 hover:underline cursor-pointer"
+              >
                 #{tagName}
               </span>
             ))}

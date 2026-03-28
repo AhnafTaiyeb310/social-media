@@ -15,7 +15,8 @@ import {
   ChevronUp,
   Tags,
   Globe,
-  Settings
+  Settings,
+  Plus
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -33,28 +34,29 @@ export function CreatePost({ postToEdit = null, onCancel = null }) {
   const [status, setStatus] = useState(postToEdit?.status || "published");
   const [visibility, setVisibility] = useState(postToEdit?.visibility || "public");
   const [categoryId, setCategoryId] = useState(postToEdit?.category || "");
-  const [selectedTags, setSelectedTags] = useState(postToEdit?.tag_ids || []);
-  const [scheduledFor, setScheduledFor] = useState(postToEdit?.scheduled_for ? new Date(postToEdit.scheduled_for).toISOString().slice(0, 16) : "");
   
+  // Tag state
+  const [selectedTags, setSelectedTags] = useState(postToEdit?.tags || []);
+  const [tagInput, setTagInput] = useState("");
+  const [showTagDropdown, setShowTagDropdown] = useState(false);
+  
+  const [scheduledFor, setScheduledFor] = useState(postToEdit?.scheduled_for ? new Date(postToEdit.scheduled_for).toISOString().slice(0, 16) : "");
   const [showAdvanced, setShowAdvanced] = useState(isEditing);
   
-  // Multiple images support
   const [selectedImages, setSelectedImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState(isEditing && postToEdit.images ? postToEdit.images.map(img => img.image_url) : []);
   
   const fileInputRef = useRef(null);
+  const tagInputRef = useRef(null);
   const queryClient = useQueryClient();
 
-  // Fetch categories and tags
   const { data: categories } = useQuery({ queryKey: ["categories"], queryFn: getCategories });
   const { data: tagsData } = useQuery({ queryKey: ["tags"], queryFn: getTags });
 
   const mutation = useMutation({
     mutationFn: isEditing ? (data) => updatePost({ id: postToEdit.id, data }) : createPost,
     onSuccess: () => {
-      if (!isEditing) {
-        resetForm();
-      }
+      if (!isEditing) resetForm();
       queryClient.invalidateQueries({ queryKey: ["posts", "feed"] });
       if (onCancel) onCancel();
     },
@@ -79,12 +81,9 @@ export function CreatePost({ postToEdit = null, onCancel = null }) {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
       setSelectedImages(prev => [...prev, ...files]);
-      
       files.forEach(file => {
         const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreviews(prev => [...prev, reader.result]);
-        };
+        reader.onloadend = () => setImagePreviews(prev => [...prev, reader.result]);
         reader.readAsDataURL(file);
       });
     }
@@ -95,11 +94,31 @@ export function CreatePost({ postToEdit = null, onCancel = null }) {
     setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  const toggleTag = (tagId) => {
-    setSelectedTags(prev => 
-      prev.includes(tagId) ? prev.filter(id => id !== tagId) : [...prev, tagId]
-    );
+  // Tag Handlers
+  const addTag = (tagName) => {
+    const cleanTag = tagName.toLowerCase().trim();
+    if (cleanTag && !selectedTags.includes(cleanTag)) {
+      setSelectedTags(prev => [...prev, cleanTag]);
+    }
+    setTagInput("");
+    setShowTagDropdown(false);
   };
+
+  const removeTag = (tagName) => {
+    setSelectedTags(prev => prev.filter(t => t !== tagName));
+  };
+
+  const handleTagInputKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag(tagInput);
+    }
+  };
+
+  const filteredTags = tagsData?.results?.filter(t => 
+    t.tag.toLowerCase().includes(tagInput.toLowerCase()) && 
+    !selectedTags.includes(t.tag.toLowerCase())
+  ).slice(0, 5) || [];
 
   const handlePost = () => {
     if (!content.trim() && selectedImages.length === 0 && !title.trim()) return;
@@ -113,8 +132,8 @@ export function CreatePost({ postToEdit = null, onCancel = null }) {
     if (categoryId) formData.append("category", categoryId);
     if (scheduledFor) formData.append("scheduled_for", scheduledFor);
     
-    selectedTags.forEach(tagId => {
-      formData.append("tag_ids", tagId);
+    selectedTags.forEach(name => {
+      formData.append("tag_names", name);
     });
 
     selectedImages.forEach(imageFile => {
@@ -189,6 +208,62 @@ export function CreatePost({ postToEdit = null, onCancel = null }) {
 
             {showAdvanced && (
               <div className="space-y-4 pt-2 border-t border-zinc-50 dark:border-zinc-800/50 animate-in fade-in slide-in-from-top-2 duration-300">
+                
+                {/* Tags Input Section */}
+                <div className="space-y-2 relative">
+                  <label className="text-[10px] font-bold uppercase text-zinc-500 flex items-center gap-1">
+                    <Tags className="h-3 w-3" /> Tags
+                  </label>
+                  
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {selectedTags.map(tag => (
+                      <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-semibold">
+                        #{tag}
+                        <button onClick={() => removeTag(tag)} className="hover:text-blue-800"><X className="h-3 w-3" /></button>
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="relative">
+                    <input
+                      ref={tagInputRef}
+                      type="text"
+                      value={tagInput}
+                      onChange={(e) => {
+                        setTagInput(e.target.value);
+                        setShowTagDropdown(true);
+                      }}
+                      onFocus={() => setShowTagDropdown(true)}
+                      onKeyDown={handleTagInputKeyDown}
+                      placeholder="Add a tag and press Enter..."
+                      className="w-full bg-zinc-50 dark:bg-zinc-800 rounded-lg p-2 text-sm outline-none border-none"
+                    />
+                    
+                    {showTagDropdown && (tagInput || filteredTags.length > 0) && (
+                      <div className="absolute z-50 w-full mt-1 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-zinc-100 dark:border-zinc-700 overflow-hidden">
+                        {filteredTags.map(t => (
+                          <button
+                            key={t.id}
+                            onClick={() => addTag(t.tag)}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex items-center justify-between group"
+                          >
+                            <span>#{t.tag}</span>
+                            <Plus className="h-3 w-3 opacity-0 group-hover:opacity-100 text-blue-600" />
+                          </button>
+                        ))}
+                        {tagInput && !filteredTags.find(t => t.tag.toLowerCase() === tagInput.toLowerCase()) && (
+                          <button
+                            onClick={() => addTag(tagInput)}
+                            className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-t border-zinc-50 dark:border-zinc-700 transition-colors"
+                          >
+                            Create new tag: <strong>#{tagInput}</strong>
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <textarea
                   value={excerpt}
                   onChange={(e) => setExcerpt(e.target.value)}
@@ -249,28 +324,6 @@ export function CreatePost({ postToEdit = null, onCancel = null }) {
                       />
                     </div>
                   )}
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase text-zinc-500 flex items-center gap-1">
-                    <Tags className="h-3 w-3" /> Tags
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {tagsData?.results?.map(tag => (
-                      <button
-                        key={tag.id}
-                        onClick={() => toggleTag(tag.id)}
-                        className={cn(
-                          "px-3 py-1 rounded-full text-xs font-medium transition-all",
-                          selectedTags.includes(tag.id) 
-                            ? "bg-blue-600 text-white" 
-                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200"
-                        )}
-                      >
-                        #{tag.tag}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               </div>
             )}
