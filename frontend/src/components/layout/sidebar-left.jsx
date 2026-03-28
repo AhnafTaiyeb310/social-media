@@ -28,7 +28,11 @@ const tags = [
   "javascript", "react", "nextjs", "tailwindcss", "python", "django", "webdev", "saas"
 ];
 
+import { usePathname } from "next/navigation";
+
 export function LeftSidebar() {
+  const pathname = usePathname();
+
   return (
     <aside className="sticky top-20 hidden h-[calc(100vh-5rem)] w-64 flex-col gap-6 overflow-y-auto pr-4 lg:flex">
       {/* Navigation */}
@@ -37,7 +41,7 @@ export function LeftSidebar() {
           <Link key={item.label} href={item.href}>
             <span className={cn(
               "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800",
-              item.label === "Home" ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20" : "text-zinc-600 dark:text-zinc-400"
+              pathname === item.href ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20" : "text-zinc-600 dark:text-zinc-400"
             )}>
               <item.icon className={cn("h-5 w-5", item.color)} />
               {item.label}

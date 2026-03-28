@@ -1,7 +1,7 @@
 from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.mixins import CreateModelMixin, UpdateModelMixin, RetrieveModelMixin
+from rest_framework.mixins import CreateModelMixin, UpdateModelMixin, RetrieveModelMixin, ListModelMixin
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
@@ -13,10 +13,13 @@ import uuid
 from django.conf import settings
 from .tasks import upload_profile_pic_task
 
-class ProfileViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin, RetrieveModelMixin):
+class ProfileViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin, RetrieveModelMixin, ListModelMixin):
     queryset = models.Profile.objects.all()
     serializer_class = serializers.ProfileSerializer
+    lookup_field = 'user__username'
 
+    def get_serializer_context(self):
+        return {'request': self.request}
 
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
@@ -53,10 +56,10 @@ class ProfileViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin, Retriev
             profile, created = models.Profile.objects.get_or_create(user=request.user)
             
             if request.method == "GET":
-                serializer = serializers.ProfileSerializer(profile)
+                serializer = serializers.ProfileSerializer(profile, context={'request': request})
                 return Response(serializer.data)
             
-            serializer = serializers.ProfileSerializer(profile, data=request.data, partial=True) 
+            serializer = serializers.ProfileSerializer(profile, data=request.data, partial=True, context={'request': request}) 
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
@@ -84,11 +87,9 @@ class ProfileFollowViewset(GenericViewSet):
             profile.followers.add(request.user)
             is_following = True
 
-        return Response({
-            "is_following": is_following,
-            "followers_count": profile.followers.count(),
-            "followings_count": models.Profile.objects.filter(followers__in= [profile.user]).count()
-        }, status=status.HTTP_200_OK)
+        # Return updated profile data using serializer with context
+        serializer = serializers.ProfileListSerializer(profile, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
         
     @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated])
     def suggestions(self, request):

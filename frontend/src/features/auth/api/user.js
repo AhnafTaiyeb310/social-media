@@ -10,6 +10,11 @@ export const getSuggestions = async () => {
     return res.data;
 };
 
+export const getProfiles = async (params = {}) => {
+    const res = await api.get("/profile/", { params });
+    return res.data;
+};
+
 export const getProfile = async (username) => {
     const res = await api.get(`/profile/${username}/`);
     return res.data;

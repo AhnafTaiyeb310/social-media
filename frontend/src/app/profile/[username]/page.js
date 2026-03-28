@@ -71,7 +71,7 @@ export default function ProfilePage() {
                   <div className="flex flex-wrap gap-4 mt-4 text-sm text-zinc-500">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      <span>Joined {profile?.created_at ? format(new Date(profile.created_at), 'MMMM yyyy') : 'Recently'}</span>
+                      <span>Joined {profile?.date_joined ? format(new Date(profile.date_joined), 'MMMM yyyy') : 'Recently'}</span>
                     </div>
                     {profile?.location && (
                       <div className="flex items-center gap-1">
@@ -91,7 +91,7 @@ export default function ProfilePage() {
                       <p className="text-xs text-zinc-500 font-medium">Followers</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-bold text-zinc-900 dark:text-white">{profile?.followings_count || 0}</p>
+                      <p className="text-sm font-bold text-zinc-900 dark:text-white">{profile?.following_count || 0}</p>
                       <p className="text-xs text-zinc-500 font-medium">Following</p>
                     </div>
                   </div>

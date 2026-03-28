@@ -7,7 +7,10 @@ export const useFollow = () => {
     return useMutation({
         mutationFn: (id) => followProfile(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["profiles", "suggestions"] });
+            // Invalidate EVERYTHING related to profiles to ensure UI updates instantly
+            queryClient.invalidateQueries({ queryKey: ["profiles"] });
+            queryClient.invalidateQueries({ queryKey: ["profile"] });
+            queryClient.invalidateQueries({ queryKey: ["me"] });
             queryClient.invalidateQueries({ queryKey: ["posts", "feed"] });
         },
     });
