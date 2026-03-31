@@ -1,19 +1,20 @@
-// hooks/useLogout.js
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import api from "@/lib/axios";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useRouter } from "next/navigation";
+import { logoutRequest } from "../api/authApi";
 
-export const useLogout = () => {
-    const queryClient = useQueryClient();
-    const logout = useAuthStore((s) => s.logout);
+export const useLogout = ()=> {
+    const logout = useAuthStore(s=> s.logout);
+    const router = useRouter();
 
-    return useMutation({
-    mutationFn: async () => {
-        await api.post("/logout/");
-    },
-    onSuccess: () => {
-        logout();
-        queryClient.clear();
-    },
-    });
-};
+    const handleLogout = async ()=> {
+        try{
+            await logoutRequest();
+        } catch (error) {
+            console.error("Logout failed:", error)
+        } finally {
+            logout();
+            router.push("/login")
+        }
+    }
+    return handleLogout;
+}

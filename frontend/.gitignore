@@ -39,6 +39,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-brainstorming_ideas_into_designs.md
-next-best-practices

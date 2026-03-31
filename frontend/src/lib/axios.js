@@ -1,56 +1,52 @@
-import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
+import axios from "axios"
 
-const api = axios.create({
-    baseURL: "http://127.0.0.1:8000/api/",
+const instance = axios.create({
+    baseURL: process.env.NEXT_PUBLIC_API_URL,
     withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
+
+// Add a request interceptor
+instance.interceptors.request.use(function (config) {
     const token = useAuthStore.getState().accessToken;
 
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-
+    if(token)
+        config.headers.Authorization = `Bearer ${token}`
     return config;
-});
-
-
-api.interceptors.response.use(
-    (res) => res,
-    async (error) => {
-        const originalRequest = error.config;
-
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
-
-            try {
-                const res = await axios.post(
-                    "http://127.0.0.1:8000/api/refresh/",
-                    {},
-                    { withCredentials: true },
-                );
-
-                const newAccess = res.data.access;
-
-                useAuthStore.getState().setAccessToken(newAccess);
-
-                originalRequest.headers.Authorization = `Bearer ${newAccess}`;
-
-                return api(originalRequest);
-            } catch (err) {
-                useAuthStore.getState().logout();
-            }
-        }
-
-        return Promise.reject(error);
+    }, function (error) {
+    return Promise.reject(error);
     },
 );
 
-export const registerUser = async (data) => {
-    const res = await api.post("/register/", data);
-    return res.data;
-};
+instance.interceptors.response.use(
+    res => res,
+    async (error) => {
+        const request = error.config;
+        
+        if(error.response?.status !== 401 || request._retry){
+            return Promise.reject(error);
+        }
 
-export default api;
+        request._retry = true;
+
+        try {
+            const res = await axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/refresh/`,
+                {}, { withCredentials: true }
+            )
+            const newAccessToken = res.data.access
+            useAuthStore.getState().setAccessToken(newAccessToken)
+
+            // retry with new token
+            request.headers.Authorization = `Bearer ${newAccessToken}`
+            return instance(request)
+        } catch (error) {
+            // useAuthStore.getState().logout();
+            return Promise.reject(error)
+        }
+    }
+)
+
+
+export default instance;

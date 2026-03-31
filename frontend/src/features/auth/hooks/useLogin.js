@@ -1,24 +1,30 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import api from "@/lib/axios";
 import { useAuthStore } from "@/store/useAuthStore";
-import { getMe } from "../api/user";
+import { useRouter } from "next/navigation"; 
+import { useState } from "react";
+import { loginRequest } from "../api/authApi";
 
-export const useLogin = () => {
-    const setAccessToken = useAuthStore((s) => s.setAccessToken);
-    const setAuth = useAuthStore((s) => s.setAuth);
-    const queryClient = useQueryClient();
+export function useLogin(){
+    const router = useRouter();
+    const login = useAuthStore(s=> s.login);
+    const setLoading = useAuthStore(s=> s.setLoading);
+    const [error, setError] = useState(false);
 
-    return useMutation({
-        mutationFn: async (data) => {
-            const res = await api.post("/login/", data);
-            return res.data;
-        },
-        onSuccess: (data) => {
-            // 1. Store token in store
-            setAccessToken(data.access);
-            
-            // 2. Invalidate query cache for "me" to trigger a refetch
-            queryClient.invalidateQueries({ queryKey: ["me"] });
-        },
-    });
-};
+    const handleLogin = async (data)=> {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const res = await loginRequest(data)
+            login(res.access, res.user)
+            router.push("/")
+            console.log("logged in")
+        } catch (err) {
+            setError(err.response?.data?.error || err.response?.data?.detail || "Login failed");
+        } finally {
+
+            setLoading(false)
+        }
+    }
+
+    return { handleLogin, error };
+}
