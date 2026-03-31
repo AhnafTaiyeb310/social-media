@@ -1,12 +1,10 @@
-import React from 'react'
+import MainLayout from '@/components/layout/MainLayout';
+import Feed from '@/components/feed/Feed';
 
-function Home() {
+export default function Home() {
   return (
-    <div>
-      <h1>feed</h1>
-    </div>
-  )
+    <MainLayout>
+      <Feed />
+    </MainLayout>
+  );
 }
-
-export default Home
-
