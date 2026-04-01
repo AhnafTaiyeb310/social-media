@@ -7,7 +7,7 @@ export default function PostCard({ post }) {
   return (
     <SleekCard className="p-6 border-none shadow-sleek hover:shadow-sleek-md transition-all group relative overflow-hidden mb-6">
       {post.likes > 100 && (
-          <div className="absolute top-0 left-0 w-1.5 h-full bg-primary/40"></div>
+        <div className="absolute top-0 left-0 w-1.5 h-full bg-primary/40"></div>
       )}
       
       <div className="flex gap-4">
@@ -18,10 +18,10 @@ export default function PostCard({ post }) {
           <div className="flex items-center justify-between mb-3">
             <div className="min-w-0">
               <span className="font-bold text-gray-900 mr-2 hover:text-primary cursor-pointer transition-colors leading-none truncate block sm:inline">
-                  {post.author}
+                {post.author}
               </span>
               <span className="text-gray-400 font-medium text-xs">
-                  @{post.handle} · {post.time}
+                @{post.handle} · {post.time}
               </span>
             </div>
             <button className="text-gray-300 hover:text-gray-900 p-2 rounded-xl hover:bg-gray-50 transition-all">···</button>
@@ -57,7 +57,7 @@ export default function PostCard({ post }) {
               <span>{post.likes}</span>
             </button>
             <button className="p-2 text-gray-300 hover:text-gray-900 rounded-xl hover:bg-gray-50 transition-all">
-               📤
+              📤
             </button>
           </div>
         </div>

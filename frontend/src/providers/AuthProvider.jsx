@@ -5,25 +5,25 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect } from "react";
 
 function AuthProvider({ children }) {
-    const accessToken = useAuthStore((s) => s.accessToken);
-    const setUser = useAuthStore((s) => s.setUser);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const setUser = useAuthStore((s) => s.setUser);
 
-    useEffect(() => {
+  useEffect(() => {
     if (!accessToken) return;
 
     const initAuth = async () => {
-        try {
+      try {
         const user = await getMe();
         setUser(user);
-        } catch (err) {
+      } catch (err) {
         console.log("AUTH ERROR:", err);
-        }
+      }
     };
 
     initAuth();
-    }, [accessToken]);
+  }, [accessToken]);
 
-    return children;
+  return children;
 }
 
 export default AuthProvider;

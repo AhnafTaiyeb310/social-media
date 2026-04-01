@@ -1,28 +1,20 @@
-import React from 'react';
-import SidebarLeft from './SidebarLeft';
-import SidebarRight from './SidebarRight';
-import Navbar from '../navigation/Navbar';
+import Breadcrumb from "./Breadcrumb";
+import Header from "./Header";
+import Sidebar from "./Sidebar";
 
-export default function MainLayout({ children }) {
+export default function MainLayout({children}) {
   return (
-    <div className="min-h-screen bg-background font-sans">
-      <Navbar />
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 px-4 pt-24 pb-12">
-        {/* Left Sidebar - Navigation */}
-        <aside className="hidden lg:block md:col-span-3 sticky top-24 h-fit">
-          <SidebarLeft />
-        </aside>
+    <main>
+      <Header />
+      <Breadcrumb />
+      <Sidebar />
 
-        {/* Main Feed */}
-        <main className="col-span-12 lg:col-span-6 space-y-6">
+      <div className="w-full lg:ps-64">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+          {/* your content goes here ... */}
           {children}
-        </main>
-
-        {/* Right Sidebar - Widgets */}
-        <aside className="hidden lg:block md:col-span-3 sticky top-24 h-fit">
-          <SidebarRight />
-        </aside>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

@@ -32,12 +32,12 @@ export default function Feed() {
     <div className="space-y-6">
       <div className="md:hidden mb-4">
         <div className="relative group">
-           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors text-sm">🔍</span>
-           <input 
-             type="text" 
-             placeholder="Search Sync..." 
-             className="w-full bg-white border border-gray-100 rounded-2xl pl-10 pr-4 py-3 font-medium text-sm shadow-sm focus:ring-4 focus:ring-primary/10 transition-all outline-none"
-           />
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors text-sm">🔍</span>
+          <input 
+            type="text" 
+            placeholder="Search Sync..." 
+            className="w-full bg-white border border-gray-100 rounded-2xl pl-10 pr-4 py-3 font-medium text-sm shadow-sm focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+          />
         </div>
       </div>
       
