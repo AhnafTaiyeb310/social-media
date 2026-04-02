@@ -57,7 +57,7 @@ class CommentModelViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         post_id = self.kwargs.get('post_pk')
         if not post_id:
-             raise ValueError("post_pk is required in the URL")
+            raise ValueError("post_pk is required in the URL")
 
         if self.request.user.is_authenticated:
             # Auto-approve for logged in users

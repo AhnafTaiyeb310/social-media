@@ -3,6 +3,7 @@ import os
 import uuid
 import logging
 from django.db import transaction
+from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.files.storage import default_storage
 from rest_framework import serializers
@@ -11,6 +12,8 @@ from . import models
 from .tasks import upload_post_image_task
 from apps.tags.models import Tag, TaggedItem
 from apps.users.serializers import ProfileListSerializer
+from apps.comments.serializers import CommentSerializer
+
 import cloudinary.uploader
 
 logger = logging.getLogger(__name__)
@@ -70,6 +73,8 @@ class PostSerializer(ModelSerializer):
         write_only=True
     )
 
+    comments = CommentSerializer(many= True, read_only = True)
+
     class Meta:
         model = models.Post
         fields = ['id', 
@@ -93,12 +98,12 @@ class PostSerializer(ModelSerializer):
                 'comments_count',
                 'is_liked',
                 'tags',
-                'tag_names'
+                'tag_names',
+                'comments'
                 ]
         read_only_fields = ['id', 'slug', 'created_at', 'updated_at', 'published_at', 'author']
         
     def get_tags(self, obj):
-        from django.contrib.contenttypes.models import ContentType
         content_type = ContentType.objects.get_for_model(obj)
         tagged_items = TaggedItem.objects.filter(content_type=content_type, object_id=obj.id).select_related('tag')
         return [item.tag.tag for item in tagged_items]
@@ -107,7 +112,7 @@ class PostSerializer(ModelSerializer):
         if tag_names is None:
             return
             
-        from django.contrib.contenttypes.models import ContentType
+        
         content_type = ContentType.objects.get_for_model(post)
         
         # Clear existing tags if any

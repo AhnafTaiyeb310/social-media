@@ -1,8 +1,9 @@
-import { Inter, JetBrains_Mono } from "next/font/google";
-import "./globals.css";
 import ProvidersWrapper from "@/providers/ProvidersWrapper";
-import PrelineScriptWrapper from "@/components/PrelineScriptWrapper";
-import SearchModal from "@/components/navigation/SearchModal"
+import { Inter, JetBrains_Mono } from "next/font/google";
+import Script from 'next/script';
+import PrelineScriptWrapper from "../components/PrelineScriptWrapper";
+import SearchModal from "../components/navigation/SearchModal";
+import "./globals.css";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -26,7 +27,7 @@ export default function RootLayout({ children }) {
       className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased light`}
     >
       <head>
-        <script
+        <Script id="1"
           dangerouslySetInnerHTML={{
             __html: `
             const html = document.querySelector('html');
@@ -41,8 +42,10 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col font-sans bg-background text-text">
-        <ProvidersWrapper>{children}</ProvidersWrapper>
+      <body className="min-h-full flex flex-col font-sans bg-layer text-text">
+        <ProvidersWrapper>
+            {children}
+        </ProvidersWrapper>
         <PrelineScriptWrapper />
         <SearchModal />
       </body>

@@ -12,7 +12,7 @@ class Comment(models.Model):
     content = models.TextField()
     guest_name = models.CharField(max_length=255, blank=True, null=True)
     guest_email = models.EmailField(blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICE, default= 'pending', db_index=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICE, default= 'approved', db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies', db_index=True)

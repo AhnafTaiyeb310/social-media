@@ -1,14 +1,14 @@
 import { useAuthStore } from "@/store/useAuthStore";
 import axios from "axios"
 
-const instance = axios.create({
+const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
 });
 
 
 // Add a request interceptor
-instance.interceptors.request.use(function (config) {
+api.interceptors.request.use(function (config) {
   const token = useAuthStore.getState().accessToken;
 
   if(token)
@@ -19,7 +19,7 @@ instance.interceptors.request.use(function (config) {
 },
 );
 
-instance.interceptors.response.use(
+api.interceptors.response.use(
   res => res,
   async (error) => {
     const request = error.config;
@@ -40,13 +40,13 @@ instance.interceptors.response.use(
 
       // retry with new token
       request.headers.Authorization = `Bearer ${newAccessToken}`
-      return instance(request)
+      return api(request)
     } catch (error) {
-      // useAuthStore.getState().logout();
+      useAuthStore.getState().logout();
       return Promise.reject(error)
     }
   }
 )
 
 
-export default instance;
+export default api;

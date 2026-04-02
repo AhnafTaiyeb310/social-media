@@ -1,7 +1,10 @@
+'use client';
 import Logo from "../navigation/Logo";
 import SearchInput from "../navigation/SearchInput";
 import { LuSun, LuMoon } from 'react-icons/lu';
 import ThemeToggle from "../navigation/ThemeToggle";
+import Image from "next/image";
+
 export default function Header() {
   return (
     <header className="sticky top-0 inset-x-0 flex flex-wrap md:justify-start md:flex-nowrap z-48 w-full bg-navbar border-b border-navbar-line text-sm py-2.5 lg:ps-65">
@@ -92,10 +95,12 @@ export default function Header() {
                 aria-expanded="false"
                 aria-label="Dropdown"
               >
-                <img
+                <Image
                   className="shrink-0 size-9.5 rounded-full"
                   src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=320&h=320&q=80"
                   alt="Avatar"
+                  width={38}
+                  height={38}
                 />
               </button>
 

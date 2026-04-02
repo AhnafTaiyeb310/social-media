@@ -2,7 +2,7 @@
 import { useSignup } from '@/features/auth/hooks/useSignup'
 import Link from 'next/link'
 import React, { useState } from 'react'
-import { SleekButton, SleekInput, SleekCard } from '@/components/ui/SleekElements';
+import { SleekButton, SleekInput, SleekCard } from '../../../components/ui/SleekElements';
 
 function Signup() {
   const [form, setForm] = useState({

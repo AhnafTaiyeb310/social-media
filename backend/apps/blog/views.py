@@ -118,25 +118,30 @@ class PostModelViewSet(viewsets.ModelViewSet):
         return Response({"liked": liked, "total_likes": total_likes}, status=status.HTTP_200_OK)         
 
     
-    @action(detail=False, methods=['GET'] , permission_classes=[IsAuthenticated], )
+    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated])
     def feed(self, request):
         user = request.user
-        posts = models.Post.objects.filter( 
-            Q(author__profile__in = user.following_profiles.all())  |  
-            Q(author_id = user.id)
-            ).select_related('author', 'category'
-            ).prefetch_related("images", "likes__user"
-            ).annotate(
-                likes_count = Count('likes', distinct=True),
-                comments_count = Count('comments', distinct=True),
-                is_liked = Exists(
-                    PostLike.objects.filter(
-                        user = user,
-                        post = OuterRef('pk')
-                    )
-                )
-            ).order_by('-created_at')
         
+        # 1. Get IDs of users this user follows
+        # following_profiles returns Profiles where current user is in the 'followers' list
+        followed_user_ids = user.following_profiles.values_list('user_id', flat=True)
+        
+        # 2. Filter posts: (Authors I follow) OR (My own posts)
+        posts = models.Post.objects.filter(
+            Q(author_id__in=followed_user_ids) | Q(author=user)
+        ).select_related(
+            'author', 'author__profile', 'category'
+        ).prefetch_related(
+            "images", "likes", "comments"
+        ).annotate(
+            likes_count=Count('likes', distinct=True),
+            comments_count=Count('comments', distinct=True),
+            is_liked=Exists(
+                PostLike.objects.filter(user=user, post=OuterRef('pk'))
+            )
+        ).order_by('-created_at')
+        
+        # 3. Handle Pagination
         page = self.paginate_queryset(posts)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
