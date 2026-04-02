@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createPost, deletePost, getCategories, getFeed, getPost, getPosts, updatePost } from '../api/postApi';
+import { createPost, deletePost, getCategories, getFeed, getPost, getPosts, likePost, updatePost } from '../api/postApi';
 
 export const usePosts = () => {
   return useQuery({
@@ -59,3 +59,15 @@ export const useDeletePost = (id)=> {
     onSuccess: ()=> queryClient.invalidateQueries({queryKey: ['post',  id]}),
   });
 }
+
+export const useLikePost = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id) => likePost(id),
+    onSuccess: (data, id) => {
+      queryClient.invalidateQueries({ queryKey: ['post', id] });
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
+    },
+  });
+};

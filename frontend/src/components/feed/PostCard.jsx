@@ -1,4 +1,5 @@
 'use client';
+import { useLikePost } from '@/features/post/hooks/usePost';
 import Image from 'next/image';
 import {
   LuBadgeCheck,
@@ -8,10 +9,14 @@ import {
   LuMessageCircle,
   LuShare2,
 } from 'react-icons/lu';
+import { FaHeart, FaRegHeart } from 'react-icons/fa6';
 
 export default function PostCard({ post, onClick }) {
+  const { mutate: toggleLike, isPending: isLiking } = useLikePost();
+
   // Destructuring based on your Django model
   const {
+    id,
     author,
     author_profile,
     content,
@@ -20,7 +25,15 @@ export default function PostCard({ post, onClick }) {
     images,
     likes_count,
     comments_count,
+    is_liked,
   } = post || {};
+
+  const handleLike = (e) => {
+    e.stopPropagation(); // Prevent opening PostDetail
+    toggleLike(id);
+  };
+
+
 
   return (
     <div
@@ -124,8 +137,20 @@ export default function PostCard({ post, onClick }) {
       <div className="p-4 pt-2 border-t border-gray-100 dark:border-neutral-800 mt-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-x-5">
-            <button className="flex items-center gap-x-1.5 text-gray-500 hover:text-red-600 transition-colors group dark:text-neutral-500 dark:hover:text-red-500">
-              <LuHeart className="size-5 group-hover:fill-red-600/10" />
+            <button
+              onClick={handleLike}
+              disabled={isLiking}
+              className={`flex items-center gap-x-1.5 transition-colors group ${
+                is_liked
+                  ? 'text-red-600 dark:text-red-500'
+                  : 'text-gray-500 hover:text-red-600 dark:text-neutral-500 dark:hover:text-red-500'
+              }`}
+            >
+              {is_liked ? (
+                <FaHeart className="size-5" />
+              ) : (
+                <FaRegHeart className="size-5 group-hover:text-red-600" />
+              )}
               <span className="text-sm font-medium">{likes_count}</span>
             </button>
             <button className="flex items-center gap-x-1.5 text-gray-500 hover:text-blue-600 transition-colors group dark:text-neutral-500 dark:hover:text-blue-400">
