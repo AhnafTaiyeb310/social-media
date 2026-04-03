@@ -29,8 +29,17 @@ class PostModelViewSet(viewsets.ModelViewSet):
     pagination_class = FeedPagination
 
     def get_queryset(self):
+        user = self.request.user
         queryset = models.Post.objects.select_related('category', 'author').prefetch_related('images').all()
         
+        # 0. Hide drafts from non-authors
+        if user.is_authenticated:
+            # Authors can see their own drafts, others only see published
+            queryset = queryset.filter(Q(status='published') | Q(author=user))
+        else:
+            # Anonymous users only see published
+            queryset = queryset.filter(status='published')
+
         # 1. Filter by specific tag if provided (Exact match)
         tag_name = self.request.query_params.get('tag')
         if tag_name:
@@ -126,9 +135,9 @@ class PostModelViewSet(viewsets.ModelViewSet):
         # following_profiles returns Profiles where current user is in the 'followers' list
         followed_user_ids = user.following_profiles.values_list('user_id', flat=True)
         
-        # 2. Filter posts: (Authors I follow) OR (My own posts)
+        # 2. Filter posts: (Authors I follow OR My own posts) AND (Status must be published)
         posts = models.Post.objects.filter(
-            Q(author_id__in=followed_user_ids) | Q(author=user)
+            (Q(author_id__in=followed_user_ids) | Q(author=user)) & Q(status='published')
         ).select_related(
             'author', 'author__profile', 'category'
         ).prefetch_related(
