@@ -2,6 +2,7 @@ import { FaBookBookmark } from 'react-icons/fa6';
 import { FaRegBookmark } from 'react-icons/fa6';
 import { FaBook } from 'react-icons/fa6';
 import { LuBookOpen, LuNotebookPen, LuNotepadTextDashed, LuCopyCheck, LuBell } from 'react-icons/lu';
+import Link from 'next/link';
 
 export default function Sidebar() {
   return (
@@ -194,13 +195,13 @@ export default function Sidebar() {
                       </a>
                     </li>
                     <li>
-                      <a
+                      <Link
                         className="flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-sidebar-nav-foreground rounded-lg hover:bg-sidebar-nav-hover focus:outline-hidden focus:bg-sidebar-nav-focus"
-                        href="#"
+                        href="/drafts"
                       >
                         <LuNotepadTextDashed />
                         Drafts
-                      </a>
+                      </Link>
                     </li>
                     <li>
                       <a

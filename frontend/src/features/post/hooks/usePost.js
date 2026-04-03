@@ -18,7 +18,7 @@ export const useCategories = () => {
 export const usePost = (id) => {
   return useQuery({
     queryKey: ['post', id],
-    queryFn: ()=> getPost(id),
+    queryFn: () => getPost(id),
     enabled: !!id,
   });
 };
@@ -30,35 +30,17 @@ export const useFeed = () => {
   });
 };
 
-export const useCreatePost = ()=> {
-  const queryClient = useQueryClient()
+export const useCreatePost = () => {
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data) => createPost(data),
-    onSuccess: ()=> {
-      queryClient.invalidateQueries({queryKey: ['posts']});
-      queryClient.invalidateQueries({queryKey: ['feed']});
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
     },
   });
-}
-
-export const useUpdatePost = (id)=> {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (data) => updatePost(id, data),
-    onSuccess: ()=> queryClient.invalidateQueries({queryKey: ['post',  id]}),
-  });
-}
-
-export const useDeletePost = (id)=> {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: () => deletePost(id),
-    onSuccess: ()=> queryClient.invalidateQueries({queryKey: ['post',  id]}),
-  });
-}
+};
 
 export const useLikePost = () => {
   const queryClient = useQueryClient();
@@ -67,6 +49,31 @@ export const useLikePost = () => {
     mutationFn: (id) => likePost(id),
     onSuccess: (data, id) => {
       queryClient.invalidateQueries({ queryKey: ['post', id] });
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
+    },
+  });
+};
+
+export const useUpdatePost = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }) => updatePost(id, data),
+    onSuccess: (data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['post', id] });
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+    },
+  });
+};
+
+export const useDeletePost = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id) => deletePost(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
       queryClient.invalidateQueries({ queryKey: ['feed'] });
     },
   });
