@@ -1,0 +1,31 @@
+name: CD - Deploy to Server
+
+on:
+  push:
+    branches: [ "main" ] # Triggers only on push to main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /path/to/your/social-media/backend
+            git pull origin main
+            
+            # Use uv to sync the environment
+            uv sync --frozen
+            
+            # Run migrations (since you reset them recently)
+            uv run python manage.py migrate --noinput
+            
+            # Restart your application server (Gunicorn/Uvicorn)
+            sudo systemctl restart gunicorn
