@@ -109,7 +109,6 @@ export default function PostForm({ initialData = null, onSubmit, isPending, butt
     }
     
     if (form.category) {
-        // Handle if category is object or ID
         const catId = typeof form.category === 'object' ? form.category.id : form.category;
         data.append('category', catId);
     }
@@ -120,7 +119,7 @@ export default function PostForm({ initialData = null, onSubmit, isPending, butt
     onSubmit(data);
   };
 
-  const avatarSrc = user?.profile?.profile_picture_url || 'https://images.unsplash.com/photo-1531927557220-a9e23c1e4794?auto=format&fit=facearea&facepad=2&w=300&h=300&q=80';
+  const avatarSrc = user?.profile_picture_url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
 
   return (
     <div className="flex flex-col bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-neutral-900 dark:border-neutral-800 transition-all overflow-hidden">
@@ -150,7 +149,6 @@ export default function PostForm({ initialData = null, onSubmit, isPending, butt
         </div>
       </div>
 
-      {/* Body */}
       <div className="p-4 space-y-4">
         <input
           type="text" name="title" value={form.title} onChange={handleChange}
@@ -163,7 +161,6 @@ export default function PostForm({ initialData = null, onSubmit, isPending, butt
           placeholder="What's on your mind? Share your thoughts or code..."
         ></textarea>
 
-        {/* Tags */}
         {form.tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {form.tags.map(tag => (
@@ -175,7 +172,6 @@ export default function PostForm({ initialData = null, onSubmit, isPending, butt
           </div>
         )}
 
-        {/* Images */}
         {form.imagePreviews.length > 0 && (
           <div className="grid gap-2 grid-cols-3">
             {form.imagePreviews.map((preview, index) => (
@@ -188,7 +184,6 @@ export default function PostForm({ initialData = null, onSubmit, isPending, butt
         )}
       </div>
 
-      {/* More Options */}
       {showMoreOptions && (
         <div className="px-4 py-4 bg-gray-50 dark:bg-neutral-800/50 border-y border-gray-100 dark:border-neutral-800 space-y-4">
           <div className="grid grid-cols-2 gap-4">

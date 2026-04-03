@@ -67,7 +67,7 @@ export default function Header() {
               >
                 <Image
                   className="shrink-0 size-9.5 rounded-full object-cover"
-                  src={user?.profile?.profile_picture_url || "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=facearea&facepad=2&w=320&h=320&q=80"}
+                  src={user?.profile_picture_url || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"}
                   alt="Avatar"
                   width={38}
                   height={38}

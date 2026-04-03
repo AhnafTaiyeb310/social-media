@@ -52,7 +52,7 @@ export default function MyProfilePage() {
     (p) => p.author === profile.username && p.status === 'published'
   ) || [];
 
-  const defaultAvatar = 'https://images.unsplash.com/photo-1531927557220-a9e23c1e4794?auto=format&fit=facearea&facepad=2&w=300&h=300&q=80';
+  const defaultAvatar = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20 px-4 pt-6">

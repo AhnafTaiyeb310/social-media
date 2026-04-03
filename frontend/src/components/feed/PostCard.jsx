@@ -48,7 +48,7 @@ export default function PostCard({ post, onClick }) {
               className="inline-block size-10 rounded-full ring-2 ring-white dark:ring-neutral-900"
               src={
                 author_profile?.profile_picture_url || 
-                'https://images.unsplash.com/photo-1531927557220-a9e23c1e4794?auto=format&fit=facearea&facepad=2&w=300&h=300&q=80'
+                'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'
               }
               alt="Author Avatar"
               width={40}
@@ -114,10 +114,10 @@ export default function PostCard({ post, onClick }) {
         )}
       </div>
 
-      {/* 3. Media Placeholder (Optional Image) */}
-      <div className="px-4 py-2">
-        <div className="rounded-xl overflow-hidden border border-gray-100 dark:border-neutral-800 relative min-h-[200px]">
-          {images && images[0] ? (
+      {/* 3. Media Section (Only if images exist) */}
+      {images && images[0] && (
+        <div className="px-4 py-2">
+          <div className="rounded-xl overflow-hidden border border-gray-100 dark:border-neutral-800 relative min-h-[200px]">
             <Image
               className="w-full h-auto object-cover max-h-96"
               src={images[0].image_url}
@@ -125,13 +125,9 @@ export default function PostCard({ post, onClick }) {
               width={800}
               height={450}
             />
-          ) : (
-            <div className="w-full h-48 bg-gray-100 dark:bg-neutral-800 flex items-center justify-center text-gray-400">
-              No Image
-            </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 4. Footer: Engagement Actions */}
       <div className="p-4 pt-2 border-t border-gray-100 dark:border-neutral-800 mt-2">

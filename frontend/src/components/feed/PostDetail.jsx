@@ -167,7 +167,7 @@ export default function PostDetail({ post, onClose }) {
   } = post;
 
   const postImage = images?.[0]?.image_url;
-  const defaultAvatar = 'https://images.unsplash.com/photo-1531927557220-a9e23c1e4794?auto=format&fit=facearea&facepad=2&w=300&h=300&q=80';
+  const defaultAvatar = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
   const displayComments = commentsData?.results || post.comments || [];
 
   return (
