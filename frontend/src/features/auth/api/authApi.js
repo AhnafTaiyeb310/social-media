@@ -25,4 +25,14 @@ export const getProfile = async (username) => {
   return res.data;
 };
 
+export const getSuggestions = async () => {
+  const res = await axios.get('/profiles/suggestions/');
+  return res.data;
+};
+
+export const followUser = async (profileId) => {
+  const res = await axios.post(`/profiles/${profileId}/follow/`);
+  return res.data;
+};
+
 

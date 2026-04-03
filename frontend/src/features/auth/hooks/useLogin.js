@@ -1,8 +1,8 @@
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation"; 
 import { useState } from "react";
-import { loginRequest, getProfile, getMe } from "../api/authApi";
-import { useQuery } from "@tanstack/react-query";
+import { loginRequest, getProfile, getMe, getSuggestions, followUser } from "../api/authApi";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function useLogin(){
   const router = useRouter();
@@ -42,5 +42,23 @@ export const useProfile = (username) => {
     queryKey: ['profile', username],
     queryFn: () => getProfile(username),
     enabled: !!username,
+  });
+};
+
+export const useSuggestions = () => {
+  return useQuery({
+    queryKey: ['suggestions'],
+    queryFn: getSuggestions,
+  });
+};
+
+export const useFollowUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (profileId) => followUser(profileId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['suggestions'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
   });
 };

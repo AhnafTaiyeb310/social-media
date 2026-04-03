@@ -14,6 +14,7 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from '../navigation/Logo';
+import { getTags } from '@/features/post/api/postApi';
 
 export default function Sidebar() {
   const pathname = usePathname();

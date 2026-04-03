@@ -1,11 +1,28 @@
 'use client';
-import { LuChevronLeft, LuChevronRight, LuUsers } from 'react-icons/lu';
+import { LuChevronLeft, LuChevronRight, LuUsers, LuPlus, LuCheck } from 'react-icons/lu';
 import Image from 'next/image';
+import { useSuggestions, useFollowUser } from '@/features/auth/hooks/useLogin';
+import Link from 'next/link';
 
 export default function AuthorsFollow() {
+  const { data: suggestions, isLoading } = useSuggestions();
+  const { mutate: follow, isPending: isFollowing } = useFollowUser();
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col bg-white border border-gray-200 rounded-xl p-5 dark:bg-neutral-900 dark:border-neutral-800 shadow-sm animate-pulse">
+        <div className="h-4 bg-gray-200 dark:bg-neutral-800 rounded w-1/2 mb-6"></div>
+        <div className="space-y-4">
+          {[1, 2, 3].map(i => <div key={i} className="h-12 bg-gray-100 dark:bg-neutral-800 rounded-xl"></div>)}
+        </div>
+      </div>
+    );
+  }
+
+  const authors = suggestions || [];
+
   return (
     <div className="flex flex-col bg-white border border-gray-200 rounded-xl p-5 dark:bg-neutral-900 dark:border-neutral-800 shadow-sm">
-      {/* 1. Header with Icon */}
       <div className="flex items-center gap-x-3 mb-6">
         <div className="inline-flex justify-center items-center size-8 bg-blue-50 rounded-lg dark:bg-blue-900/30">
           <LuUsers className="size-4 text-blue-600 dark:text-blue-500" />
@@ -15,65 +32,48 @@ export default function AuthorsFollow() {
         </h3>
       </div>
 
-      {/* 2. Spaced Author List */}
       <div className="flex flex-col gap-y-6">
-        {[
-          {
-            name: 'Syed Ahmer Shah',
-            bio: "Hey, I'm Ahmer — a Software Engineering student...",
-            posts: '1 post this month',
-          },
-          {
-            name: 'Rakesh Darge',
-            bio: 'Microsoft MVP (Business Applications)| Lifelong Learne...',
-            posts: '2 posts this month',
-          },
-          {
-            name: 'Shreyas Patil',
-            bio: 'Google Developer Expert for Android | ❤️ All things...',
-            posts: '1 post this month',
-          },
-        ].map((author, idx) => (
-          <div key={idx} className="flex gap-x-3">
-            <div className="relative size-8 flex-shrink-0">
-              <Image
-                className="rounded-full object-cover"
-                src={`https://i.pravatar.cc/150?u=${idx}`}
-                alt={author.name}
-                fill
-              />
+        {authors.length > 0 ? (
+          authors.map((author) => (
+            <div key={author.id} className="flex items-start justify-between gap-x-3">
+              <Link href={`/profile/${author.username}`} className="flex gap-x-3 flex-1 min-w-0 group">
+                <div className="relative size-10 flex-shrink-0">
+                  <Image
+                    className="rounded-full object-cover ring-2 ring-transparent group-hover:ring-blue-500/30 transition-all"
+                    src={author.profile_picture_url || `https://i.pravatar.cc/150?u=${author.username}`}
+                    alt={author.username}
+                    fill
+                  />
+                </div>
+                <div className="flex flex-col gap-y-0.5 min-w-0">
+                  <h4 className="text-sm font-bold text-gray-800 dark:text-neutral-200 hover:text-blue-600 truncate transition">
+                    {author.first_name} {author.last_name}
+                  </h4>
+                  <p className="text-xs text-gray-500 dark:text-neutral-500 truncate">
+                    @{author.username}
+                  </p>
+                </div>
+              </Link>
+              
+              <button 
+                onClick={() => follow(author.username)} // Backend uses username/ID as lookup
+                disabled={isFollowing}
+                className="p-1.5 rounded-lg border border-gray-200 dark:border-neutral-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 transition-all disabled:opacity-50"
+              >
+                <LuPlus className="size-4" />
+              </button>
             </div>
-            <div className="flex flex-col gap-y-0.5">
-              <h4 className="text-sm font-bold text-gray-800 dark:text-neutral-200 hover:text-blue-600 cursor-pointer transition">
-                {author.name}
-              </h4>
-              <p className="text-xs text-gray-500 dark:text-neutral-500 line-clamp-2 leading-relaxed">
-                {author.bio}
-              </p>
-              <div className="mt-1">
-                <span className="inline-flex items-center gap-x-1.5 py-1 px-2 rounded-full text-[10px] font-medium bg-gray-100 text-gray-800 dark:bg-neutral-800 dark:text-neutral-400">
-                  {author.posts}
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p className="text-xs text-gray-500 text-center py-4 italic">No suggestions at the moment.</p>
+        )}
       </div>
 
-      {/* 3. Pagination Footer (Preline Pagination Style) */}
       <div className="mt-8 pt-4 border-t border-gray-100 dark:border-neutral-800 flex items-center justify-between text-xs text-gray-500">
-        <button
-          className="inline-flex items-center gap-x-1 hover:text-blue-600 disabled:opacity-50"
-          disabled
-        >
-          <LuChevronLeft className="size-3" />
-          Prev
-        </button>
-        <span className="font-medium text-gray-400">1 / 3</span>
-        <button className="inline-flex items-center gap-x-1 hover:text-blue-600">
-          Next
-          <LuChevronRight className="size-3" />
-        </button>
+        <span className="font-medium text-gray-400">Discover more authors</span>
+        <Link href="/search?type=users" className="text-blue-600 hover:underline font-bold">
+          See all
+        </Link>
       </div>
     </div>
   );

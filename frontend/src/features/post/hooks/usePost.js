@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createPost, deletePost, getCategories, getFeed, getPost, getPosts, likePost, updatePost } from '../api/postApi';
+import { createPost, deletePost, getCategories, getFeed, getPost, getPosts, likePost, updatePost, getTags } from '../api/postApi';
 
 export const usePosts = () => {
   return useQuery({
@@ -12,6 +12,13 @@ export const useCategories = () => {
   return useQuery({
     queryKey: ['categories'],
     queryFn: getCategories,
+  });
+};
+
+export const useTags = () => {
+  return useQuery({
+    queryKey: ['tags'],
+    queryFn: getTags,
   });
 };
 
