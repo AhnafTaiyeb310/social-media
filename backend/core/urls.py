@@ -40,6 +40,7 @@ urlpatterns = [
         path('', include('apps.users.urls')),
         path('', include('apps.blog.urls')),
         path('', include('apps.tags.urls')),
+        path('', include('apps.utils.urls')),
         
         # API Documentation
         path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

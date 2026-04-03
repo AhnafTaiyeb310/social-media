@@ -1,7 +1,8 @@
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation"; 
 import { useState } from "react";
-import { loginRequest } from "../api/authApi";
+import { loginRequest, getProfile, getMe } from "../api/authApi";
+import { useQuery } from "@tanstack/react-query";
 
 export function useLogin(){
   const router = useRouter();
@@ -28,3 +29,18 @@ export function useLogin(){
 
   return { handleLogin, error };
 }
+
+export const useMe = () => {
+  return useQuery({
+    queryKey: ['profile', 'me'],
+    queryFn: getMe,
+  });
+};
+
+export const useProfile = (username) => {
+  return useQuery({
+    queryKey: ['profile', username],
+    queryFn: () => getProfile(username),
+    enabled: !!username,
+  });
+};

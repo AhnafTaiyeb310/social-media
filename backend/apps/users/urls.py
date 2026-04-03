@@ -17,6 +17,9 @@ urlpatterns = [
     path('refresh/', RefreshView.as_view(), name='refresh'),
     path('logout/', LogoutView.as_view(), name='logout'),
     
+    # Force profile/me to be handled before the ViewSet lookup captures it
+    path('profile/me/', views.ProfileViewSet.as_view({'get': 'me', 'put': 'me', 'patch': 'me'}), name='profile-me'),
+
     # Social Auth endpoints
     path('auth/google/', GoogleLoginView.as_view(), name='google-login'),
     path('auth/facebook/', FacebookLoginView.as_view(), name='facebook-login'),

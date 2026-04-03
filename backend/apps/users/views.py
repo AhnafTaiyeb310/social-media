@@ -69,9 +69,15 @@ class ProfileViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin, Retriev
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
-class ProfileFollowViewset(GenericViewSet):
+class ProfileFollowViewset(GenericViewSet, RetrieveModelMixin):
     queryset = models.Profile.objects.all()
-    serializer_class = serializers.ProfileListSerializer
+    serializer_class = serializers.ProfileSerializer
+    lookup_field = 'user__username'
+
+    def get_permissions(self):
+        if self.action in ['retrieve', 'followers_list', 'following_list']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     @action(detail=True, methods=["POST"], permission_classes=[IsAuthenticated])
     def follow(self, request, pk= None):

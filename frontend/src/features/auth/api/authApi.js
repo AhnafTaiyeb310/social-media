@@ -20,4 +20,9 @@ export const signupRequest = async (data) => {
   return res.data;
 };
 
+export const getProfile = async (username) => {
+  const res = await axios.get(`/profiles/${username}/`);
+  return res.data;
+};
+
 

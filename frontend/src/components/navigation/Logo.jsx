@@ -1,10 +1,6 @@
 export default function Logo() {
   return (
-    <a
-      className="flex-none rounded-md text-xl inline-block font-semibold focus:outline-hidden focus:opacity-80"
-      href="#"
-      aria-label="Preline"
-    >
+    <div className="flex items-center">
       <svg
         className="w-28 h-auto"
         width="116"
@@ -38,6 +34,6 @@ export default function Logo() {
           fill="currentColor"
         />
       </svg>
-    </a>
+    </div>
   );
 }
