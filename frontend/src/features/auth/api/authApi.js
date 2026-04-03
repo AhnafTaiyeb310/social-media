@@ -10,6 +10,15 @@ export const getMe = async (data)=> {
   return res.data
 }
 
+export const updateMe = async (data) => {
+  const res = await axios.patch("/profile/me/", data, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return res.data;
+};
+
 export const logoutRequest = async (data) => {
   const res = await axios.post("/logout/");
   return res.data;

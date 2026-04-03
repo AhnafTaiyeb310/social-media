@@ -6,6 +6,8 @@ import { SleekButton, SleekInput, SleekCard } from '../../../components/ui/Sleek
 
 function Signup() {
   const [form, setForm] = useState({
+    first_name: "",
+    last_name: "",
     email: "",
     username: "",
     password: "",
@@ -64,6 +66,35 @@ function Signup() {
 
           <SleekCard className="p-8 space-y-4">
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1" htmlFor="first_name">
+                    First Name
+                  </label>
+                  <SleekInput
+                    id='first_name'
+                    type='text'
+                    placeholder='John'
+                    value={form.first_name}
+                    onChange={e=> setForm({...form, first_name: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1" htmlFor="last_name">
+                    Last Name
+                  </label>
+                  <SleekInput
+                    id='last_name'
+                    type='text'
+                    placeholder='Doe'
+                    value={form.last_name}
+                    onChange={e=> setForm({...form, last_name: e.target.value})}
+                    required
+                  />
+                </div>
+              </div>
+
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1" htmlFor="username">
                   Username

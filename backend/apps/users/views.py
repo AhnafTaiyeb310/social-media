@@ -8,10 +8,9 @@ from rest_framework import status
 from . import models 
 from . import serializers
 from .permissions import isOwner
-import os
-import uuid
-from django.conf import settings
-from .tasks import upload_profile_pic_task
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ProfileViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin, RetrieveModelMixin, ListModelMixin):
     queryset = models.Profile.objects.all()
@@ -32,40 +31,25 @@ class ProfileViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin, Retriev
     
     def perform_create(self, serializer):
         return serializer.save(user = self.request.user)
-    
-    def perform_update(self, serializer):
-        profile = serializer.save()
-        file_obj = self.request.FILES.get('profile_picture')
-        if file_obj:
-            tmp_dir = os.path.join(settings.MEDIA_ROOT, 'tmp')
-            os.makedirs(tmp_dir, exist_ok=True)
-            file_extension = os.path.splitext(file_obj.name)[1]
-            unique_name = f"profile_{profile.id}_{uuid.uuid4()}{file_extension}"
-            tmp_path = os.path.join(tmp_dir, unique_name)
-            
-            with open(tmp_path, 'wb+') as destination:
-                for chunk in file_obj.chunks():
-                    destination.write(chunk)
-            
-            upload_profile_pic_task.delay(profile.id, tmp_path)
 
     @action(detail=False, methods=['GET', 'PUT', 'PATCH'], permission_classes=[IsAuthenticated])
     def me(self, request):
         try:
-            # Get or create profile for the current user
             profile, created = models.Profile.objects.get_or_create(user=request.user)
             
             if request.method == "GET":
-                serializer = serializers.ProfileSerializer(profile, context={'request': request})
+                serializer = self.get_serializer(profile)
                 return Response(serializer.data)
             
-            serializer = serializers.ProfileSerializer(profile, data=request.data, partial=True, context={'request': request}) 
+            # Django + CloudinaryField handles the upload automatically when serializer.save() is called
+            serializer = self.get_serializer(profile, data=request.data, partial=True) 
             serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data)
+            updated_profile = serializer.save()
+            
+            return Response(self.get_serializer(updated_profile).data)
+            
         except Exception as e:
-            import traceback
-            traceback.print_exc()
+            logger.exception(f"Profile update failed for user {request.user.id}:")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 

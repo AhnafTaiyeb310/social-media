@@ -71,6 +71,7 @@ export default function Header() {
                   alt="Avatar"
                   width={38}
                   height={38}
+                  style={{ height: 'auto' }}
                 />
               </button>
 

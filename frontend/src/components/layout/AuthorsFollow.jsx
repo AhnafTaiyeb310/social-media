@@ -43,6 +43,7 @@ export default function AuthorsFollow() {
                     src={author.profile_picture_url || `https://i.pravatar.cc/150?u=${author.username}`}
                     alt={author.username}
                     fill
+                    sizes="40px"
                   />
                 </div>
                 <div className="flex flex-col gap-y-0.5 min-w-0">
