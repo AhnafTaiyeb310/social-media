@@ -55,9 +55,10 @@ const setAccessTokenCookie = (token) => {
   if (typeof document === 'undefined') return;
 
   if (token) {
-    // Keep cookie for 7 days, match SameSite with Lax for better compatibility
-    document.cookie = `accessToken=${token}; path=/; Max-Age=${7 * 24 * 60 * 60}; SameSite=Lax; Secure;`;
+    // Standard secure cookie format for production and development
+    const maxAge = 7 * 24 * 60 * 60; // 7 days
+    document.cookie = `accessToken=${token}; path=/; Max-Age=${maxAge}; SameSite=Lax;`;
   } else {
-    document.cookie = 'accessToken=; Max-Age=0; path=/;';
+    document.cookie = 'accessToken=; path=/; Max-Age=0;';
   }
 };
