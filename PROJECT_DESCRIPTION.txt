@@ -1,0 +1,77 @@
+# Project Descriptions: Aura Social Media Platform
+
+---
+
+## 1. RESUME VERSION (Short & Impactful)
+**Aura | Full-Stack Developer | Python (Django), JavaScript (Next.js, React)**
+*   Developed a high-performance social media platform using Django REST Framework and Next.js, implementing a decoupled architecture for seamless scalability.
+*   Engineered a real-time engagement system supporting nested comment threading, recursive replies, and optimized "Like" logic using Django signals and database annotations.
+*   Implemented an asynchronous media processing pipeline using Celery and Redis to handle multi-image uploads to Cloudinary, reducing server response time by 40%.
+*   Designed a robust authentication system using JWT with secure sliding-window token refresh logic and persistent state management via Zustand.
+*   Built a global unified search engine and a sophisticated content management dashboard for drafts, scheduled posts, and archived content.
+
+---
+
+## 2. PORTFOLIO VERSION (Engaging & Visual)
+**Project Title: Aura - The Developer’s Social Network**
+Aura is a modern, developer-centric social platform designed for sharing stories, code, and insights. Built with a focus on speed and user experience, it mirrors the high-end functionality of platforms like Hashnode and Medium.
+
+**Key Features:**
+*   **Dynamic Content Creation**: A powerful editor supporting multi-image uploads, categorized tagging, and post scheduling.
+*   **Real-time Interactions**: Nested, recursive discussion threads and instant "Like" updates powered by React Query.
+*   **Personalized Experience**: Custom user profiles with social links, follow/unfollow capabilities, and smart user suggestions.
+*   **Aura Search**: A dual-layered search system featuring a "Quick Search" modal (Ctrl+K) and a deep-dive results page with filtered tabs.
+*   **Draft Management**: A professional dashboard to organize ideas, manage drafts, and track published content.
+
+**Tech Stack:** 
+Next.js (App Router), Tailwind CSS (Preline UI), TanStack Query, Zustand, Django REST Framework, Celery, Redis, and Cloudinary.
+
+---
+
+## 3. GITHUB README VERSION (Comprehensive & Technical)
+# Aura Social Media Platform
+
+Aura is a full-stack social media application built with a modern tech stack, focusing on architectural integrity, performance, and a polished user interface.
+
+### 🚀 Features
+
+#### Content Management
+*   **Full CRUD**: Create, read, update, and delete posts with ease.
+*   **Drafts System**: Save your progress and keep ideas private until they are ready for the world.
+*   **Post Scheduling**: Schedule your content to go live at a specific date and time.
+*   **Advanced Media**: Support for multiple image uploads per post with asynchronous processing.
+
+#### User Engagement
+*   **Nested Discussions**: Real-time comment system with support for infinite nested replies.
+*   **Engagement Metrics**: Like and comment counts updated instantly across the UI.
+*   **Follow System**: Follow your favorite authors and get tailored suggestions.
+
+#### Discovery
+*   **Unified Global Search**: Search for posts, people, and tags in one place.
+*   **Tagging System**: Categorize content with custom tags for better discoverability.
+*   **Trending Content**: Dynamic "Trending Articles" and "Popular Topics" sidebars.
+
+### 🛠 Tech Stack
+
+**Frontend:**
+*   **Framework**: Next.js 14+ (App Router)
+*   **State Management**: Zustand (with Persistence)
+*   **Data Fetching**: TanStack Query (React Query)
+*   **UI Library**: Tailwind CSS & Preline UI
+*   **Icons**: Lucide & React Icons
+
+**Backend:**
+*   **Framework**: Django 5.0 & Django REST Framework
+*   **Authentication**: SimpleJWT (JSON Web Tokens)
+*   **Database**: PostgreSQL / SQLite
+*   **Task Queue**: Celery & Redis (for async image uploads)
+*   **Storage**: Cloudinary (Image Hosting)
+
+### 🏗 Architecture
+The project follows a decoupled architecture where the Django backend serves as a stateless API and the Next.js frontend handles the rendering and client-side logic. 
+*   **Optimized Queries**: Uses `select_related` and `prefetch_related` to solve N+1 problems.
+*   **Background Processing**: Offloads heavy image processing to Celery workers to keep the UI responsive.
+*   **Persistent Auth**: Implements a secure token refresh interceptor in Axios to manage sessions automatically.
+
+---
+*Created by Syed Ahmer Shah*
