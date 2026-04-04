@@ -27,5 +27,4 @@ COPY . .
 EXPOSE 8000
 
 # 9. Default start command (Gunicorn for production)
-# CMD ["sh", "-c", "uv run python manage.py collectstatic --noinput && uv run gunicorn core.wsgi:application --bind 0.0.0.0:8000"]
-CMD ["sh", "-c", "mkdir -p /app/staticfiles && uv run python manage.py collectstatic --noinput --clear && uv run gunicorn core.wsgi:application --bind 0.0.0.0:8000"]
+CMD ["sh", "-c", "uv run python manage.py migrate --noinput && uv run python create_admin.py && uv run python manage.py collectstatic --noinput && uv run gunicorn core.wsgi:application --bind 0.0.0.0:8000"]
