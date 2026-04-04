@@ -7,12 +7,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 export function useLogin(){
   const router = useRouter();
   const login = useAuthStore(s=> s.login);
-  const setLoading = useAuthStore(s=> s.setLoading);
   const [error, setError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (data)=> {
     try {
-      setLoading(true);
+      setIsLoading(true);
       setError(null);
 
       const res = await loginRequest(data)
@@ -22,12 +22,11 @@ export function useLogin(){
     } catch (err) {
       setError(err.response?.data?.error || err.response?.data?.detail || "Login failed");
     } finally {
-
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
-  return { handleLogin, error };
+  return { handleLogin, error, isLoading };
 }
 
 export const useMe = () => {

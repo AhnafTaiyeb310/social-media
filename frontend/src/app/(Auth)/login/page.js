@@ -3,13 +3,14 @@ import { useLogin } from '@/features/auth/hooks/useLogin';
 import Link from 'next/link';
 import React, { useState } from 'react'
 import { SleekButton, SleekInput, SleekCard } from '../../../components/ui/SleekElements';
+import { LuLoader } from 'react-icons/lu';
 
 function Login() {
   const [form, setForm] = useState({
     email: "",
     password: "",
   })
-  const { handleLogin, error } = useLogin();
+  const { handleLogin, error, isLoading } = useLogin();
     
   const handleSubmit = async (e)=> {
     e.preventDefault();
@@ -91,8 +92,9 @@ function Login() {
                 />
               </div>
                         
-              <SleekButton type='submit' className="w-full shadow-lg mt-2">
-                Sign in
+              <SleekButton type='submit' disabled={isLoading} className="w-full shadow-lg mt-2 flex items-center justify-center gap-2">
+                {isLoading && <LuLoader className="size-4 animate-spin" />}
+                {isLoading ? 'Signing in...' : 'Sign in'}
               </SleekButton>
             </form>
 

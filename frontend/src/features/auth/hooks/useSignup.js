@@ -4,13 +4,13 @@ import { signupRequest } from "../api/authApi"
 import { useRouter } from "next/navigation"
 
 export const useSignup = ()=> {
-  const setLoading = useAuthStore(s=> s.setLoading)
   const [error, setError] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const handleSignup = async (data)=> {
     try {
-      setLoading(true);
+      setIsLoading(true);
       setError(false);
 
       await signupRequest(data);
@@ -19,8 +19,8 @@ export const useSignup = ()=> {
     } catch (error) {
       setError(error.response?.data || "Signup failed")
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
-  return { handleSignup, error }
+  return { handleSignup, error, isLoading }
 }

@@ -43,6 +43,10 @@ api.interceptors.response.use(
       return api(request)
     } catch (error) {
       useAuthStore.getState().logout();
+      // Force a hard redirect to login if we're on the client side
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
       return Promise.reject(error)
     }
   }
