@@ -236,6 +236,8 @@ else:
             "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
         },
     }
+    # to satisfy the cloudinary-storage library's internal check
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 MEDIA_URL = '/media/'
