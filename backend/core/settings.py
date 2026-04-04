@@ -91,6 +91,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage', #Must be above staticfiles
     'django.contrib.staticfiles',
     'django.contrib.sites',
 ]
@@ -108,7 +109,6 @@ EXTERNAL_APPS = [
     "django_extensions",
     "django_filters",
     'cloudinary',
-    'cloudinary_storage',
     'celery',
     'django_celery_beat',
     
@@ -132,9 +132,9 @@ INSTALLED_APPS += EXTERNAL_APPS
 # Middleware
 # -------------------------------
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
