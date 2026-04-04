@@ -233,7 +233,7 @@ else:
         },
         # This handles DRF/Admin CSS/JS via WhiteNoise on Render
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
         },
     }
     # to satisfy the cloudinary-storage library's internal check
