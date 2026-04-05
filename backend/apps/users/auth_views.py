@@ -102,11 +102,26 @@ class RefreshView(APIView):
 
         try:
             refresh = RefreshToken(refresh_token)
-            access_token = str(refresh.access_token)
+            
+            # If rotation is enabled, we need to create a NEW token and optionally blacklist the old one
+            if settings.SIMPLE_JWT.get("ROTATE_REFRESH_TOKENS", False):
+                if settings.SIMPLE_JWT.get("BLACKLIST_AFTER_ROTATION", False):
+                    try:
+                        # Blacklist the old token
+                        refresh.blacklist()
+                    except AttributeError:
+                        # If blacklist app is not installed or token is already blacklisted
+                        pass
+                
+                # These calls effectively "rotate" the token by generating a new JTI and exp
+                refresh.set_jti()
+                refresh.set_exp()
+                refresh.set_iat()
 
+            access_token = str(refresh.access_token)
             response = Response({"access": access_token}, status=status.HTTP_200_OK)
 
-            # If rotation is enabled, we should set the new refresh token in the cookie
+            # Set the (potentially new) refresh token back in the cookie
             if settings.SIMPLE_JWT.get("ROTATE_REFRESH_TOKENS", False):
                 set_refresh_cookie(response, refresh)
 

@@ -56,6 +56,7 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = 'None'
     CSRF_COOKIE_SAMESITE = 'None'
+    AUTH_COOKIE_SAMESITE = 'None'
     
     # HSTS (Strict Transport Security)
     SECURE_HSTS_SECONDS = 31536000  # 1 year
@@ -126,8 +127,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'cloudinary_storage', #Must be above staticfiles
     'django.contrib.staticfiles',
+    'cloudinary_storage', 
     'django.contrib.sites',
 ]
 
@@ -306,7 +307,7 @@ SIMPLE_JWT = {
 AUTH_COOKIE = "refresh_token"
 AUTH_COOKIE_HTTP_ONLY = True
 AUTH_COOKIE_SECURE = not DEBUG
-AUTH_COOKIE_SAMESITE = 'Lax'
+AUTH_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
 AUTH_COOKIE_PATH = '/'
 
 # Social Auth Settings
