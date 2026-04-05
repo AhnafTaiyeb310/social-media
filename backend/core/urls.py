@@ -60,7 +60,6 @@ urlpatterns += [
 ]
 import sentry_sdk
 
-# Send logs directly to Sentry
-sentry_sdk.logger.info('This is an info log message')
-sentry_sdk.logger.warning('This is a warning message')
-sentry_sdk.logger.error('This is an error message')
+# Use these instead of sentry_sdk.logger
+sentry_sdk.capture_message("This is a test info message") 
+sentry_sdk.capture_message("This is a warning", level="warning")

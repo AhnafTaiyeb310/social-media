@@ -22,28 +22,27 @@ DEBUG = config('DEBUG', cast=bool, default=True)
 # -------------------------------
 # Sentry Settings
 # -------------------------------
-# if not DEBUG:
-#     SENTRY_DSN = config('SENTRY_DSN', cast=str, default='')
-#     if SENTRY_DSN:
-#         import sentry_sdk
-#         from sentry_sdk.integrations.django import DjangoIntegration
-#         sentry_sdk.init(
-#             dsn=SENTRY_DSN,
-#             send_default_pii=True,
-#             traces_sample_rate=0.2,
-#             integrations=[DjangoIntegration()],
-#             environment='production',
-#         )
+import logging
 import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
 
+# 1. Setup Sentry
 sentry_sdk.init(
-    dsn="https://3935648cf9d8a71fdc9052631f0e158f@o4511166879105024.ingest.de.sentry.io/4511166901256272",
-    # Add data like request headers and IP for users,
-    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    dsn=config('SENTRY_DSN'), 
+    integrations=[DjangoIntegration()],
+    traces_sample_rate=1.0,
     send_default_pii=True,
     # Enable sending logs to Sentry
     enable_logs=True,
 )
+
+# 2. Now just use standard Python logging anywhere in your app
+logger = logging.getLogger(__name__)
+
+def trigger_error(request):
+    logger.error("Someone hit the error trigger!") # This goes to Sentry
+    return 1 / 0
 
 
     # Production Security Settings
