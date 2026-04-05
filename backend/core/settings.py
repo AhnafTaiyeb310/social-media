@@ -276,14 +276,14 @@ AUTH_USER_MODEL = "users.CustomUser"
 
 # Security / Session Settings
 SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
+CSRF_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
 SESSION_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_HTTPONLY = False  # Must be False so JS can read for headers
-CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = False  
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
-# Remove allauth adapters and providers
+
 # Cloudinary settings
 cloudinary.config(
     cloud_name = config("CLOUD_NAME"),

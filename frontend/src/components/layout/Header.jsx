@@ -1,24 +1,34 @@
 'use client';
 import Logo from "../navigation/Logo";
 import SearchInput from "../navigation/SearchInput";
-import { LuBell, LuActivity, LuUser, LuSettings, LuLogOut, LuSearch } from 'react-icons/lu';
+import { LuBell, LuActivity, LuUser, LuLogOut, LuSearch } from 'react-icons/lu';
 import ThemeToggle from "../navigation/ThemeToggle";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export default function Header() {
   const { user, logout } = useAuthStore();
+  const router = useRouter();
 
   const handleSearchClick = () => {
     window.dispatchEvent(new CustomEvent('open-aura-search'));
   };
 
+  const handleLogout = ()=> {
+    logout();
+    router.push('/login');
+  }
+
   return (
     <header className="sticky top-0 inset-x-0 flex flex-wrap md:justify-start md:flex-nowrap z-48 w-full bg-navbar border-b border-navbar-line text-sm py-2.5 lg:ps-65">
       <nav className="px-4 sm:px-6 flex basis-full items-center w-full mx-auto">
         <div className="me-5 lg:me-0 lg:hidden">
-          <Link href="/" className="flex-none rounded-md focus:outline-hidden focus:opacity-80">
+          <Link
+            href="/"
+            className="flex-none rounded-md focus:outline-hidden focus:opacity-80"
+          >
             <Logo />
           </Link>
         </div>
@@ -67,7 +77,10 @@ export default function Header() {
               >
                 <Image
                   className="shrink-0 size-9.5 rounded-full object-cover"
-                  src={user?.profile_picture_url || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"}
+                  src={
+                    user?.profile_picture_url ||
+                    'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'
+                  }
                   alt="Avatar"
                   width={38}
                   height={38}
@@ -89,7 +102,7 @@ export default function Header() {
                     {user?.email || 'guest@site.com'}
                   </p>
                 </div>
-                
+
                 <Link
                   className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-dropdown-item-foreground hover:bg-dropdown-item-hover focus:bg-dropdown-item-focus"
                   href="/profile/me"
@@ -97,18 +110,11 @@ export default function Header() {
                   <LuUser className="shrink-0 size-4" />
                   My Profile
                 </Link>
-                
-                <button
-                  className="w-full flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-dropdown-item-foreground hover:bg-dropdown-item-hover focus:bg-dropdown-item-focus text-left"
-                >
-                  <LuSettings className="shrink-0 size-4" />
-                  Settings
-                </button>
 
                 <div className="my-1 border-t border-dropdown-line"></div>
 
                 <button
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="w-full flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-hidden text-left"
                 >
                   <LuLogOut className="shrink-0 size-4" />
