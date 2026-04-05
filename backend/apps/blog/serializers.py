@@ -148,6 +148,10 @@ class PostSerializer(ModelSerializer):
     def create(self, validated_data):
         image_data = validated_data.pop('uploaded_images', []) or []
         tag_names = validated_data.pop('tag_names', [])
+        
+        # Ensure author is set from context if not already in data
+        if 'author' not in validated_data and 'request' in self.context:
+            validated_data['author'] = self.context['request'].user
 
         with transaction.atomic():
             post = models.Post.objects.create(**validated_data)
