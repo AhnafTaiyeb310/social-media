@@ -44,16 +44,51 @@ def trigger_error(request):
     logger.error("Someone hit the error trigger!") # This goes to Sentry
     return 1 / 0
 
+# ------------------------------------------------------------------------------
+# SECURITY & SESSION SETTINGS (Consolidated)
+# ------------------------------------------------------------------------------
+if not DEBUG:
+    # --- PRODUCTION SETTINGS (Render/Vercel) ---
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', cast=bool, default=True)
+    
+    # Cookies must be Secure (HTTPS only) and SameSite=None for cross-domain auth
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = 'None'
+    CSRF_COOKIE_SAMESITE = 'None'
+    
+    # HSTS (Strict Transport Security)
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # Browser-level protections
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    
+    # JWT Auth Cookie Security (Production)
+    AUTH_COOKIE_SECURE = True
 
-    # Production Security Settings
-SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', cast=bool, default=True)
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = True
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_HSTS_SECONDS = 31536000 # 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+else:
+    # --- LOCAL DEVELOPMENT SETTINGS ---
+    SECURE_SSL_REDIRECT = False
+    
+    # Allow cookies over plain HTTP for local testing
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    
+    # Disable HSTS locally so you don't get locked out of http://127.0.0.1
+    SECURE_HSTS_SECONDS = 0
+    
+    # JWT Auth Cookie Security (Local)
+    AUTH_COOKIE_SECURE = False
+
+# Global Settings (Apply to both environments)
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False  # Set to False so Frontend (Next.js) can read the token
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 # -------------------------------
 # Security & Hosts
@@ -283,15 +318,6 @@ AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",
 )
 AUTH_USER_MODEL = "users.CustomUser"
-
-# Security / Session Settings
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
-CSRF_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_HTTPONLY = False  
-SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 
 # Cloudinary settings

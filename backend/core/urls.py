@@ -29,7 +29,7 @@ def trigger_error(request):
 # --------------------------------------
 def redirect_to_docs(request):
     """Redirect root URL to API documentation"""
-    return redirect('schema-swagger-ui')
+    return redirect('/api/docs/')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
