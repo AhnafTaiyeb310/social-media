@@ -13,6 +13,19 @@ api.interceptors.request.use(function (config) {
 
   if(token)
     config.headers.Authorization = `Bearer ${token}`
+  
+  // Handle CSRF for production
+  if (typeof document !== 'undefined') {
+    const csrfToken = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('csrftoken='))
+      ?.split('=')[1];
+    
+    if (csrfToken) {
+      config.headers['X-CSRFToken'] = csrfToken;
+    }
+  }
+
   return config;
 }, function (error) {
   return Promise.reject(error);
