@@ -266,7 +266,9 @@ else:
         },
     }
     # to satisfy the cloudinary-storage library's internal check
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    # and avoid crashes during collectstatic (especially for Swagger UI files)
+STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
+WHITENOISE_MANIFEST_STRICT = False
 
 
 MEDIA_URL = '/media/'
