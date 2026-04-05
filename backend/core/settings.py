@@ -251,28 +251,22 @@ STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else 
 
 
 # settings.py
-# settings.py
 
 if DEBUG:
     STORAGES = {
-        "default": {
-            "BACKEND": "django.core.files.storage.FileSystemStorage"
-        },
-        "staticfiles": {
-            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
-        },
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
     }
 else:
     STORAGES = {
-        # MEDIA: Cloudinary handles user uploads
-        "default": {
-            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"
-        },
-        # STATIC: WhiteNoise handles CSS/JS/Swagger
+        "default": {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"},
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"
+            # Use the most basic WhiteNoise backend to stop the 'FileNotFound' crashes
+            "BACKEND": "whitenoise.storage.StaticFilesStorage", 
         },
     }
+    # to satisfy the cloudinary-storage library's internal check
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 MEDIA_URL = '/media/'
