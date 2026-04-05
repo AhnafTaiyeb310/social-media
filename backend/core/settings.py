@@ -22,28 +22,39 @@ DEBUG = config('DEBUG', cast=bool, default=True)
 # -------------------------------
 # Sentry Settings
 # -------------------------------
-if not DEBUG:
-    SENTRY_DSN = config('SENTRY_DSN', cast=str, default='')
-    if SENTRY_DSN:
-        import sentry_sdk
-        from sentry_sdk.integrations.django import DjangoIntegration
-        sentry_sdk.init(
-            dsn=SENTRY_DSN,
-            send_default_pii=True,
-            traces_sample_rate=0.2,
-            integrations=[DjangoIntegration()],
-            environment='production',
-        )
+# if not DEBUG:
+#     SENTRY_DSN = config('SENTRY_DSN', cast=str, default='')
+#     if SENTRY_DSN:
+#         import sentry_sdk
+#         from sentry_sdk.integrations.django import DjangoIntegration
+#         sentry_sdk.init(
+#             dsn=SENTRY_DSN,
+#             send_default_pii=True,
+#             traces_sample_rate=0.2,
+#             integrations=[DjangoIntegration()],
+#             environment='production',
+#         )
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn="https://3935648cf9d8a71fdc9052631f0e158f@o4511166879105024.ingest.de.sentry.io/4511166901256272",
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+    # Enable sending logs to Sentry
+    enable_logs=True,
+)
+
 
     # Production Security Settings
-    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', cast=bool, default=True)
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_HSTS_SECONDS = 31536000 # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', cast=bool, default=True)
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_HSTS_SECONDS = 31536000 # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
 # -------------------------------
 # Security & Hosts

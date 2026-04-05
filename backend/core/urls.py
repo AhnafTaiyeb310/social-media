@@ -49,3 +49,18 @@ urlpatterns = [
     # Redirect root to docs
     path('', redirect_to_docs),
 ]
+
+# sentry error trigger
+def trigger_error(request):
+    division_by_zero = 1 / 0
+
+urlpatterns += [
+    path('sentry-debug/', trigger_error),
+    # ...
+]
+import sentry_sdk
+
+# Send logs directly to Sentry
+sentry_sdk.logger.info('This is an info log message')
+sentry_sdk.logger.warning('This is a warning message')
+sentry_sdk.logger.error('This is an error message')
