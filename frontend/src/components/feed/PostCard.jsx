@@ -43,16 +43,16 @@ export default function PostCard({ post, onClick }) {
       {/* 1. Header: Author Info & Options */}
       <div className="p-4 pb-2 flex items-center justify-between">
         <div className="flex items-center gap-x-3">
-          <div className="relative inline-block">
+          <div className="size-10 flex-shrink-0 relative">
             <Image
-              className="inline-block size-10 rounded-full ring-2 ring-white dark:ring-neutral-900"
+              className="rounded-full object-cover ring-2 ring-white dark:ring-neutral-900"
               src={
                 author_profile?.profile_picture_url || 
                 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'
               }
               alt="Author Avatar"
-              width={40}
-              height={40}
+              fill
+              sizes="40px"
             />
             <span className="absolute bottom-0 end-0 block size-3 rounded-full bg-green-500 ring-2 ring-white dark:ring-neutral-900"></span>
           </div>

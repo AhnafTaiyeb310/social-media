@@ -197,12 +197,13 @@ export default function PostDetail({ post, onClose }) {
           {/* Post Header */}
           <div className="flex items-center justify-between pt-4">
             <div className="flex items-center gap-x-3">
-              <div className="relative size-11">
+              <div className="relative size-11 flex-shrink-0">
                 <Image
                   className="rounded-full object-cover"
                   src={author_profile?.profile_picture_url || defaultAvatar}
                   alt="Avatar"
                   fill
+                  sizes="44px"
                 />
               </div>
               <div>

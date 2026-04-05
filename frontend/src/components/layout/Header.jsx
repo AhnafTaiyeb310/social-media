@@ -75,17 +75,18 @@ export default function Header() {
                 aria-expanded="false"
                 aria-label="Dropdown"
               >
-                <Image
-                  className="shrink-0 size-9.5 rounded-full object-cover"
-                  src={
-                    user?.profile_picture_url ||
-                    'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'
-                  }
-                  alt="Avatar"
-                  width={38}
-                  height={38}
-                  style={{ height: 'auto' }}
-                />
+                <div className="size-9.5 flex-shrink-0 relative">
+                  <Image
+                    className="rounded-full object-cover"
+                    src={
+                      user?.profile_picture_url ||
+                      'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'
+                    }
+                    alt="Avatar"
+                    fill
+                    sizes="38px"
+                  />
+                </div>
               </button>
 
               <div
