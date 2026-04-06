@@ -12,7 +12,7 @@ export default function BlogsPage() {
           Blogs
         </h1>
         <p className="text-gray-500 dark:text-neutral-500 max-w-sm mx-auto">
-          We're building a new way to explore long-form stories. This feature is coming soon!
+          We&apos;re building a new way to explore long-form stories. This feature is coming soon!
         </p>
       </div>
     </div>

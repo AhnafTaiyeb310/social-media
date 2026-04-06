@@ -184,7 +184,7 @@ export default function MyProfilePage() {
                 ))
               ) : (
                 <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl p-10 text-center text-gray-500">
-                  You haven't published any posts yet.
+                  You haven&apos;t published any posts yet.
                 </div>
               )}
             </div>

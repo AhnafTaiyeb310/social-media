@@ -20,13 +20,16 @@ from django.core.files.storage import default_storage
 from .tasks import upload_post_image_task
 
 
+from core.pagination import FeedPagination, DefaultPagination
+
+
 class PostModelViewSet(viewsets.ModelViewSet):
     queryset = models.Post.objects.select_related('category', 'author').prefetch_related('images').all()
     serializer_class = serializers.PostSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['author', 'category', 'status']
     ordering_fields = ['created_at', 'likes_count']
-    pagination_class = FeedPagination
+    pagination_class = DefaultPagination
 
     def get_queryset(self):
         user = self.request.user
@@ -130,27 +133,32 @@ class PostModelViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated])
     def feed(self, request):
         user = request.user
-        
-        # 1. Get IDs of users this user follows
-        # following_profiles returns Profiles where current user is in the 'followers' list
         followed_user_ids = user.following_profiles.values_list('user_id', flat=True)
         
-        # 2. Filter posts: (Authors I follow OR My own posts) AND (Status must be published)
+        from django.db.models import Case, When, Value, IntegerField
+        
+        priority_score = Case(
+            When(author=user, then=Value(1)),
+            When(author_id__in=followed_user_ids, then=Value(2)),
+            default=Value(3),
+            output_field=IntegerField(),
+        )
+
         posts = models.Post.objects.filter(
-            (Q(author_id__in=followed_user_ids) | Q(author=user)) & Q(status='published')
+            status='published'
         ).select_related(
             'author', 'author__profile', 'category'
         ).prefetch_related(
             "images", "likes", "comments"
         ).annotate(
+            priority=priority_score,
             likes_count=Count('likes', distinct=True),
             comments_count=Count('comments', distinct=True),
             is_liked=Exists(
                 PostLike.objects.filter(user=user, post=OuterRef('pk'))
             )
-        ).order_by('-created_at')
+        ).order_by('priority', '-created_at')
         
-        # 3. Handle Pagination
         page = self.paginate_queryset(posts)
         if page is not None:
             serializer = self.get_serializer(page, many=True)

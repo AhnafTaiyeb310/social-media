@@ -109,8 +109,8 @@ export default function PostForm({ initialData = null, onSubmit, isPending, butt
     }
     
     if (form.category) {
-        const catId = typeof form.category === 'object' ? form.category.id : form.category;
-        data.append('category', catId);
+      const catId = typeof form.category === 'object' ? form.category.id : form.category;
+      data.append('category', catId);
     }
 
     form.tags.forEach(tag => data.append('tag_names', tag));

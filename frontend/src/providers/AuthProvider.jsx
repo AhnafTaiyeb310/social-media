@@ -21,7 +21,7 @@ function AuthProvider({ children }) {
     };
 
     initAuth();
-  }, [accessToken]);
+  }, [accessToken, setUser]);
 
   return children;
 }

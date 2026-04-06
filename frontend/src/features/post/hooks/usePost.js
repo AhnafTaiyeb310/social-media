@@ -1,5 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { createPost, deletePost, getCategories, getFeed, getPost, getPosts, likePost, updatePost, getTags } from '../api/postApi';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const usePosts = () => {
   return useQuery({
@@ -31,9 +32,21 @@ export const usePost = (id) => {
 };
 
 export const useFeed = () => {
-  return useQuery({
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useInfiniteQuery({
     queryKey: ['feed'],
     queryFn: getFeed,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.next) {
+        const url = new URL(lastPage.next);
+        const nextPage = url.searchParams.get('page');
+        return nextPage ? parseInt(nextPage) : undefined;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
+    enabled: !!accessToken,
   });
 };
 

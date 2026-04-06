@@ -72,9 +72,9 @@ export default function DraftsPage() {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'published': return <LuBadgeCheck className="size-4 text-green-500" />;
-      case 'archived': return <LuArchive className="size-4 text-gray-500" />;
-      default: return <LuFileText className="size-4 text-blue-500" />;
+    case 'published': return <LuBadgeCheck className="size-4 text-green-500" />;
+    case 'archived': return <LuArchive className="size-4 text-gray-500" />;
+    default: return <LuFileText className="size-4 text-blue-500" />;
     }
   };
 
@@ -220,7 +220,7 @@ export default function DraftsPage() {
                 Delete Post?
               </h3>
               <p className="text-gray-500 dark:text-neutral-500">
-                Are you sure you want to delete <span className="font-bold text-gray-800 dark:text-neutral-200">"{postToDelete?.title || 'this post'}"</span>? 
+                Are you sure you want to delete <span className="font-bold text-gray-800 dark:text-neutral-200">&quot;{postToDelete?.title || "this post"}&quot;</span>? 
                 This action cannot be undone.
               </p>
               <div className="mt-8 flex justify-center gap-x-3">

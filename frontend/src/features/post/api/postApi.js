@@ -5,8 +5,10 @@ export const getPosts = async (params = {}) => {
   return res.data;
 };
 
-export const getFeed = async () => {
-  const res = await api.get('/posts/feed/');
+export const getFeed = async ({ pageParam = 1 }) => {
+  const res = await api.get('/posts/feed/', {
+    params: { page: pageParam }
+  });
   return res.data;
 };
 

@@ -44,8 +44,8 @@ export default function RootLayout({ children }) {
       </head>
       <body className="min-h-full flex flex-col font-sans bg-layer text-text">
         <ProvidersWrapper>
-            {children}
-            <SearchModal />
+          {children}
+          <SearchModal />
         </ProvidersWrapper>
         <PrelineScriptWrapper />
       </body>
