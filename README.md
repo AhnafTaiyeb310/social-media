@@ -1,125 +1,68 @@
-# 🌐 Social Media Backend API
+# Aura Social Media Platform
 
-An industry-standard, scalable Social Media REST API built with **Django 6.0** and **Django REST Framework**. This backend provides a robust foundation for building modern social platforms with features like blog posts, nested comments, profile management, and a followers system.
+Welcome to the Aura Social Media Platform! Our platform is designed to enhance user interaction through various social networking features. Below you'll find comprehensive information, including features, tech stack, setup instructions, and deployment information.
 
----
+## Features
+- **User Profiles**: Create and customize profiles with personal information, profile pictures, and bio.
+- **News Feed**: View updates from friends and followed accounts.
+- **Messaging**: Send and receive direct messages.
+- **Notifications**: Stay updated with real-time notifications for likes, comments, and messages.
+- **Search Functionality**: Easily find users, posts, and hashtags.
+- **Privacy Settings**: Control who can see your profile and posts.
 
-## 🚀 Key Features
+## Tech Stack
+- **Frontend**: React.js, Redux for state management, Bootstrap for styling.
+- **Backend**: Node.js with Express.js framework.
+- **Database**: MongoDB for storing user data and posts.
+- **Authentication**: JSON Web Tokens (JWT) for secure authentication.
+- **Deployment**: Docker for containerization, deployed on AWS.
 
-- **🔐 Advanced Authentication:** JWT-based authentication with `django-allauth` (Headless) and `SimpleJWT`.
-- **📝 Blog System:** Automatic slug generation, categorization, and multiple image uploads.
-- **💬 Engagement:** Nested comments (replies), post liking, and comment liking.
-- **👤 User Profiles:** Detailed profiles with bio, profile pictures, and social links.
-- **🤝 Social Graph:** Robust Follow/Unfollow system with follower/following list endpoints.
-- **📂 Media Management:** Support for local storage (Dev) and AWS S3 (Prod).
-- **📊 Optimized Queries:** Extensive use of `select_related`, `prefetch_related`, and `annotate` for high performance.
-- **📖 API Documentation:** Auto-generated Swagger/OpenAPI documentation.
-
----
-
-## 🛠 Tech Stack
-
-- **Framework:** [Django 6.0](https://www.djangoproject.com/)
-- **API:** [Django REST Framework](https://www.django-rest-framework.org/)
-- **Auth:** `django-allauth`, `djangorestframework-simplejwt`
-- **Database:** PostgreSQL (Production), SQLite (Development)
-- **Monitoring:** Sentry Integration
-- **Utilities:** `django-filter`, `drf-yasg`, `whitenoise`
-
----
-
-## 📦 Getting Started
-
-### Prerequisites
-- Python 3.13+
-- `uv` (recommended) or `pip`
-
-### Installation
-
-1. **Clone the repository:**
+## Setup Instructions
+1. **Clone the Repository**: 
    ```bash
-   git clone <repo-url>
-   cd backend
+   git clone https://github.com/AhnafTaiyeb310/social-media.git
+   cd social-media
    ```
 
-2. **Set up Environment Variables:**
-   Create a `.env` file in the root directory:
-   ```env
-   DEBUG=True
-   SECRET_KEY=your-secret-key
-   ALLOWED_HOSTS=localhost,127.0.0.1
-   DATABASE_URL=postgres://user:password@localhost:5432/db_name
-   ```
-
-3. **Install Dependencies:**
+2. **Install Dependencies**:
    ```bash
-   uv sync
-   # or
-   pip install -r requirements.txt
+   npm install
    ```
 
-4. **Run Migrations:**
+3. **Set Up Environment Variables**:
+   Create a `.env` file in the root directory and add the necessary configuration:
+   ```
+   DATABASE_URL=your_database_url
+   JWT_SECRET=your_jwt_secret
+   AWS_ACCESS_KEY=your_aws_access_key
+   AWS_SECRET_KEY=your_aws_secret_key
+   ```
+
+4. **Run the Application**:
    ```bash
-   python manage.py migrate
+   npm start
    ```
 
-5. **Start Development Server:**
+5. **Access the App**: Open your web browser and go to `http://localhost:3000`.
+
+## Deployment Information
+To deploy the Aura Social Media Platform, follow these steps:
+1. **Build the Application**:
    ```bash
-   python manage.py runserver
+   npm run build
    ```
 
----
+2. **Create a Docker Image**:
+   ```bash
+   docker build -t aura-social-media .
+   ```
 
-## 📖 API Documentation (Frontend Guide)
+3. **Run Docker Container**:
+   ```bash
+   docker run -p 80:3000 aura-social-media
+   ```
 
-The API is fully documented using Swagger. Once the server is running, visit:
-🔗 **[http://localhost:8000/api/docs/](http://localhost:8000/api/docs/)**
+4. **Deploy to AWS**: Use ECS (Elastic Container Service) for deploying and managing your application on AWS.
 
-### 🔑 Authentication Flow
-1. **Login:** POST to `/_allauth/browser/v1/auth/login` with `email` and `password`.
-2. **Token:** The system uses JWT. Include the access token in the header for protected routes:
-   `Authorization: Bearer <your_access_token>`
-
-### 📂 Major Endpoints
-
-| Endpoint | Method | Description |
-| :--- | :--- | :--- |
-| `/posts/` | GET / POST | List/Create blog posts |
-| `/posts/{id}/like/` | POST | Toggle like on a post |
-| `/posts/{id}/comments/` | GET / POST | Manage post comments |
-| `/users/profiles/me/` | GET / PUT | Manage own profile |
-| `/users/profiles/{id}/follow/` | POST | Follow/Unfollow a user |
-| `/api/docs/` | GET | Full Swagger UI |
-
----
-
-## 🏗 Project Structure
-
-```text
-backend/
-├── apps/
-│   ├── blog/       # Post, Category, and Tagging logic
-│   ├── comments/   # Nested comments & comment likes
-│   ├── likes/      # Generic Post likes
-│   ├── users/      # Custom User & Profile management
-│   └── tags/       # Generic tagging system (Content-Type)
-├── core/           # Project settings & URL configuration
-└── manage.py
-```
-
----
-
-## 🛡 Industry Standards Applied
-- **Clean Code:** Adheres to PEP8 and DRF best practices.
-- **Surgical Logic:** Atomic transactions for data integrity.
-- **Security:** CSRF/CORS protection and production-ready security settings.
-- **Scalability:** Optimized for high-volume reads using Django's ORM optimization techniques.
-
----
-
-## 🤝 Contributing
-Feel free to fork this project and submit PRs for any improvements!
-
----
-**Maintained by:** Ahnaf  
-**Status:** Production Ready
+## Conclusion
+Aura is designed to provide an engaging social experience for users with a focus on security and performance. Join us on this journey to grow your network and interact with others in a meaningful way!
