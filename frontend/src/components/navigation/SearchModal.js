@@ -1,4 +1,5 @@
 'use client';
+import { DEFAULT_AVATAR } from '@/lib/constants';
 import { useState, useEffect } from 'react';
 import { LuSearch, LuUser, LuHash, LuFileText, LuX, LuArrowRight, LuCommand } from 'react-icons/lu';
 import { useGlobalSearch } from '@/features/search/hooks/useSearch';
@@ -119,7 +120,7 @@ export default function SearchModal() {
                         <div className="flex items-center gap-x-3">
                           <div className="relative size-9">
                             <Image 
-                              src={user.profile_picture_url || 'https://i.pravatar.cc/150'} 
+                              src={user.profile_picture_url || DEFAULT_AVATAR} 
                               alt={user.username} fill className="rounded-full object-cover" 
                             />
                           </div>

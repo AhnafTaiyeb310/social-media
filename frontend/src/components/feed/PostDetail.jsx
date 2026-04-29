@@ -15,6 +15,7 @@ import { FaHeart, FaRegHeart } from 'react-icons/fa6';
 import { useLikePost } from '@/features/post/hooks/usePost';
 import { useCreateComment, useComments, useLikeComment } from '@/features/comment/hooks/useComment';
 import { useAuthStore } from '@/store/useAuthStore';
+import { DEFAULT_AVATAR } from '@/lib/constants';
 
 // RECURSIVE COMMENT COMPONENT
 function Comment({ comment, postId, defaultAvatar, onReply }) {
@@ -167,7 +168,7 @@ export default function PostDetail({ post, onClose }) {
   } = post;
 
   const postImage = images?.[0]?.image_url;
-  const defaultAvatar = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+  const defaultAvatar = DEFAULT_AVATAR;
   const displayComments = commentsData?.results || post.comments || [];
 
   return (

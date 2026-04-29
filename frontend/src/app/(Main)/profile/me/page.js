@@ -21,6 +21,7 @@ import { usePosts } from '@/features/post/hooks/usePost';
 import PostCard from '@/components/feed/PostCard';
 import Image from 'next/image';
 import EditProfileModal from '@/components/profile/EditProfileModal';
+import { DEFAULT_AVATAR } from '@/lib/constants';
 
 export default function MyProfilePage() {
   const { data: profile, isLoading: isProfileLoading } = useMe();
@@ -75,7 +76,7 @@ export default function MyProfilePage() {
     (p) => p.author === profile.username && p.status === 'published'
   ) || [];
 
-  const defaultAvatar = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+  const defaultAvatar = DEFAULT_AVATAR;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20 px-4 pt-6">

@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { LuX, LuCamera, LuSave, LuLoader } from 'react-icons/lu';
 import Image from 'next/image';
+import { DEFAULT_AVATAR } from '@/lib/constants';
 
 export default function EditProfileModal({ profile, onSave, isPending }) {
   const [formData, setFormData] = useState({
@@ -15,7 +16,7 @@ export default function EditProfileModal({ profile, onSave, isPending }) {
     website_url: profile?.website_url || '',
   });
 
-  const [previewUrl, setPreviewUrl] = useState(profile?.profile_picture_url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y');
+  const [previewUrl, setPreviewUrl] = useState(profile?.profile_picture_url || DEFAULT_AVATAR);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
 

@@ -2,6 +2,7 @@
 import { LuChevronLeft, LuChevronRight, LuUsers, LuPlus, LuCheck } from 'react-icons/lu';
 import Image from 'next/image';
 import { useSuggestions, useFollowUser } from '@/features/auth/hooks/useLogin';
+import { DEFAULT_AVATAR } from '@/lib/constants';
 import Link from 'next/link';
 
 export default function AuthorsFollow() {
@@ -40,7 +41,7 @@ export default function AuthorsFollow() {
                 <div className="relative size-10 flex-shrink-0">
                   <Image
                     className="rounded-full object-cover ring-2 ring-transparent group-hover:ring-blue-500/30 transition-all"
-                    src={author.profile_picture_url || `https://i.pravatar.cc/150?u=${author.username}`}
+                    src={author.profile_picture_url || DEFAULT_AVATAR}
                     alt={author.username}
                     fill
                     sizes="40px"

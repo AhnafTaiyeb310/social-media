@@ -1,6 +1,7 @@
 'use client';
 
 import PostCard from '@/components/feed/PostCard';
+import { DEFAULT_AVATAR } from '@/lib/constants';
 import { useGlobalSearch } from '@/features/search/hooks/useSearch';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -106,7 +107,7 @@ export default function SearchContent() {
                           <Image
                             src={
                               user.profile_picture_url ||
-                              'https://i.pravatar.cc/150'
+                              DEFAULT_AVATAR
                             }
                             alt={user.username}
                             fill
