@@ -382,7 +382,7 @@ REST_AUTH = {
     "JWT_AUTH_SECURE": True, # Required for SameSite=None, Chrome allows this on localhost
     "JWT_AUTH_SAMESITE": 'None',
     "JWT_AUTH_RETURN_EXPIRATION": True,
-    "JWT_AUTH_COOKIE_USE_CSRF": True,
+    "JWT_AUTH_COOKIE_USE_CSRF": False,
     "REGISTER_SERIALIZER": "apps.users.serializers.RegisterSerializer",
 }
 

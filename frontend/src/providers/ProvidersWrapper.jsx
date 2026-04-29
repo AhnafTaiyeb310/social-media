@@ -19,11 +19,21 @@ export default function ProvidersWrapper({ children }) {
       }),
   );
 
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+  const content = (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>{children}</AuthProvider>
+    </QueryClientProvider>
+  );
+
+  if (!googleClientId) {
+    return content;
+  }
+
   return (
-    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>{children}</AuthProvider>
-      </QueryClientProvider>
+    <GoogleOAuthProvider clientId={googleClientId}>
+      {content}
     </GoogleOAuthProvider>
   );
 }
