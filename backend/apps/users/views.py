@@ -5,6 +5,7 @@ from rest_framework.mixins import CreateModelMixin, UpdateModelMixin, RetrieveMo
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
+from django.conf import settings
 from . import models 
 from . import serializers
 from .permissions import isOwner
@@ -155,4 +156,4 @@ class VerifyEmailAPIView(APIView):
         
         confirmation.confirm(request) # Marks email as verified
         logger.info(f"Verification successful for key: {key}")
-        return Response({"message": "Successfully verified"})
+        return Response({"message": "Successfully verified"})
