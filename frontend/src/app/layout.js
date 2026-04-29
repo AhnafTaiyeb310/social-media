@@ -4,6 +4,7 @@ import Script from 'next/script';
 import PrelineScriptWrapper from "../components/PrelineScriptWrapper";
 import SearchModal from "../components/navigation/SearchModal";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -46,6 +47,7 @@ export default function RootLayout({ children }) {
         <ProvidersWrapper>
           {children}
           <SearchModal />
+          <Toaster richColors position="top-center" />
         </ProvidersWrapper>
         <PrelineScriptWrapper />
       </body>

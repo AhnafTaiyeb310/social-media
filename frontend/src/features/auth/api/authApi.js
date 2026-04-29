@@ -1,7 +1,7 @@
 import axios from "@/lib/axios";
 
 export const loginRequest = async (data)=> {
-  const res = await axios.post("/login/", data);
+  const res = await axios.post("/auth/login/", data);
   return res.data
 }
 
@@ -20,12 +20,27 @@ export const updateMe = async (data) => {
 };
 
 export const logoutRequest = async (data) => {
-  const res = await axios.post("/logout/");
+  const res = await axios.post("/auth/logout/");
   return res.data;
 };
 
 export const signupRequest = async (data) => {
-  const res = await axios.post("/register/", data);
+  const res = await axios.post("/auth/registration/", data);
+  return res.data;
+};
+
+export const googleLoginRequest = async (token) => {
+  const res = await axios.post("/auth/google/", { access_token: token });
+  return res.data;
+};
+
+export const facebookLoginRequest = async (token) => {
+  const res = await axios.post("/auth/facebook/", { access_token: token });
+  return res.data;
+};
+
+export const verifyEmailRequest = async (key) => {
+  const res = await axios.post("/auth/registration/verify-email/", { key });
   return res.data;
 };
 

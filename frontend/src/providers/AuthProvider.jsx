@@ -5,23 +5,21 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect } from "react";
 
 function AuthProvider({ children }) {
-  const accessToken = useAuthStore((s) => s.accessToken);
   const setUser = useAuthStore((s) => s.setUser);
 
   useEffect(() => {
-    if (!accessToken) return;
-
+    // Attempt to load user on first mount using the http-only cookie
     const initAuth = async () => {
       try {
         const user = await getMe();
         setUser(user);
       } catch (err) {
-        console.log("AUTH ERROR:", err);
+        console.log("AUTH INIT FAILED / user not logged in");
       }
     };
 
     initAuth();
-  }, [accessToken, setUser]);
+  }, [setUser]);
 
   return children;
 }

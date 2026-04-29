@@ -1,8 +1,9 @@
 import { useAuthStore } from "@/store/useAuthStore";
-import { useRouter } from "next/navigation"; 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { loginRequest, getProfile, getMe, getSuggestions, followUser } from "../api/authApi";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from 'sonner';
+import { followUser, getMe, getProfile, getSuggestions, loginRequest } from "../api/authApi";
 
 export function useLogin(){
   const router = useRouter();
@@ -16,11 +17,11 @@ export function useLogin(){
       setError(null);
 
       const res = await loginRequest(data)
-      login(res.access, res.user)
+      login(res.user)
+      toast.success(`Welcome back to Sync! 👋`)
       router.push("/")
-      console.log("logged in")
     } catch (err) {
-      setError(err.response?.data?.error || err.response?.data?.detail || "Login failed");
+      setError(err.response?.data?.error || err.response?.data?.detail || err.response?.data?.non_field_errors?.[0] || "Login failed");
     } finally {
       setIsLoading(false)
     }
@@ -61,3 +62,44 @@ export const useFollowUser = () => {
     },
   });
 };
+
+import { facebookLoginRequest, googleLoginRequest } from "../api/authApi";
+
+export function useSocialAuth() {
+  const router = useRouter();
+  const login = useAuthStore(s => s.login);
+  const [error, setError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleGoogleLogin = async (token) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const res = await googleLoginRequest(token);
+      login(res.user);
+      toast.success('Logged in with Google! 🎉');
+      router.push("/");
+    } catch (err) {
+      setError("Google Login failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFacebookLogin = async (token) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const res = await facebookLoginRequest(token);
+      login(res.user);
+      toast.success('Logged in with Facebook! 🎉');
+      router.push("/");
+    } catch (err) {
+      setError("Facebook Login failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return { handleGoogleLogin, handleFacebookLogin, error, isLoading };
+}

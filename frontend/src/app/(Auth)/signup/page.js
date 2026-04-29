@@ -1,9 +1,40 @@
 'use client'
 import { useSignup } from '@/features/auth/hooks/useSignup'
+import { useSocialAuth } from '@/features/auth/hooks/useLogin'
+import { useAuthStore } from '@/store/useAuthStore'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import React, { useState } from 'react'
 import { SleekButton, SleekInput, SleekCard } from '../../../components/ui/SleekElements';
 import { LuLoader } from 'react-icons/lu';
+import { useGoogleLogin } from '@react-oauth/google';
+
+function SocialLoginButtons() {
+  const { handleGoogleLogin, handleFacebookLogin, isLoading, error } = useSocialAuth();
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: (codeResponse) => handleGoogleLogin(codeResponse.access_token),
+    flow: 'implicit',
+  });
+
+  const fbLogin = () => {
+    alert("Facebook integration requires frontend SDK. See docs.");
+  }
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-4">
+        <SleekButton onClick={() => googleLogin()} disabled={isLoading} type="button" variant="outline" className="!text-[10px] font-black h-12 uppercase tracking-widest">
+          Google
+        </SleekButton>
+        <SleekButton onClick={fbLogin} disabled={isLoading} type="button" variant="outline" className="!text-[10px] font-black h-12 uppercase tracking-widest">
+          Facebook
+        </SleekButton>
+      </div>
+      {error && <p className="text-red-500 text-xs text-center mt-2">{error}</p>}
+    </>
+  )
+}
 
 function Signup() {
   const [form, setForm] = useState({
@@ -11,11 +42,19 @@ function Signup() {
     last_name: "",
     email: "",
     username: "",
-    password: "",
-    confirm_password: "",
+    password1: "",
+    password2: "",
   })
     
-  const { handleSignup, error, isLoading } = useSignup();
+  const { handleSignup, error, isLoading, isSuccess } = useSignup();
+  const isAuthenticated = useAuthStore(s => !!s.user);
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/');
+    }
+  }, [isAuthenticated, router]);
     
   const handleSubmit = async (e)=> {
     e.preventDefault()
@@ -66,118 +105,133 @@ function Signup() {
           </div>
 
           <SleekCard className="p-8 space-y-4">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1" htmlFor="first_name">
-                    First Name
-                  </label>
-                  <SleekInput
-                    id='first_name'
-                    type='text'
-                    placeholder='John'
-                    value={form.first_name}
-                    onChange={e=> setForm({...form, first_name: e.target.value})}
-                    required
-                  />
+            {isSuccess ? (
+              <div className="text-center py-8 space-y-6">
+                <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center text-success text-4xl mx-auto shadow-inner">
+                  📧
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1" htmlFor="last_name">
-                    Last Name
-                  </label>
-                  <SleekInput
-                    id='last_name'
-                    type='text'
-                    placeholder='Doe'
-                    value={form.last_name}
-                    onChange={e=> setForm({...form, last_name: e.target.value})}
-                    required
-                  />
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-bold text-gray-900">Verify your email</h3>
+                  <p className="text-gray-500 font-medium leading-relaxed">
+                    We've sent a verification link to <span className="text-gray-900 font-bold">{form.email}</span>. 
+                    Please check your inbox (and spam folder) to activate your account.
+                  </p>
                 </div>
+                <Link href="/login" className="block">
+                  <SleekButton variant="outline" className="w-full">Return to Sign In</SleekButton>
+                </Link>
               </div>
+            ) : (
+              <>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1" htmlFor="first_name">
+                        First Name
+                      </label>
+                      <SleekInput
+                        id='first_name'
+                        type='text'
+                        placeholder='John'
+                        value={form.first_name}
+                        onChange={e=> setForm({...form, first_name: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1" htmlFor="last_name">
+                        Last Name
+                      </label>
+                      <SleekInput
+                        id='last_name'
+                        type='text'
+                        placeholder='Doe'
+                        value={form.last_name}
+                        onChange={e=> setForm({...form, last_name: e.target.value})}
+                        required
+                      />
+                    </div>
+                  </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1" htmlFor="username">
-                  Username
-                </label>
-                <SleekInput
-                  id='username'
-                  type='text'
-                  placeholder='johndoe'
-                  value={form.username}
-                  onChange={e=> setForm({...form, username: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1" htmlFor="email">
-                  Email
-                </label>
-                <SleekInput
-                  id='email'
-                  type='email'
-                  placeholder='name@example.com'
-                  value={form.email}
-                  onChange={e=> setForm({...form, email: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1" htmlFor="password">
-                  Password
-                </label>
-                <SleekInput
-                  id='password'
-                  type='password'
-                  placeholder='••••••••'
-                  value={form.password}
-                  onChange={e=> setForm({...form, password: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1" htmlFor="confirm_password">
-                  Confirm
-                </label>
-                <SleekInput
-                  id='confirm_password'
-                  type='password'
-                  placeholder='••••••••'
-                  value={form.confirm_password}
-                  onChange={e=> setForm({...form, confirm_password: e.target.value})}
-                  required
-                />
-              </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1" htmlFor="username">
+                      Username
+                    </label>
+                    <SleekInput
+                      id='username'
+                      type='text'
+                      placeholder='johndoe'
+                      value={form.username}
+                      onChange={e=> setForm({...form, username: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1" htmlFor="email">
+                      Email
+                    </label>
+                    <SleekInput
+                      id='email'
+                      type='email'
+                      placeholder='name@example.com'
+                      value={form.email}
+                      onChange={e=> setForm({...form, email: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1" htmlFor="password">
+                      Password
+                    </label>
+                    <SleekInput
+                      id='password'
+                      type='password'
+                      placeholder='••••••••'
+                      value={form.password1}
+                      onChange={e=> setForm({...form, password1: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1" htmlFor="confirm_password">
+                      Confirm
+                    </label>
+                    <SleekInput
+                      id='confirm_password'
+                      type='password'
+                      placeholder='••••••••'
+                      value={form.password2}
+                      onChange={e=> setForm({...form, password2: e.target.value})}
+                      required
+                    />
+                  </div>
 
-              <SleekButton type="submit" disabled={isLoading} className="w-full shadow-lg mt-4 bg-secondary flex items-center justify-center gap-2">
-                {isLoading && <LuLoader className="size-4 animate-spin" />}
-                {isLoading ? 'Creating Account...' : 'Get Started'}
-              </SleekButton>
-            </form>
+                  <SleekButton type="submit" disabled={isLoading} className="w-full shadow-lg mt-4 bg-secondary flex items-center justify-center gap-2">
+                    {isLoading && <LuLoader className="size-4 animate-spin" />}
+                    {isLoading ? 'Creating Account...' : 'Get Started'}
+                  </SleekButton>
+                </form>
 
-            {error && (
-              <div className="p-3 bg-danger/10 border border-danger/20 rounded-xl text-danger text-xs font-bold text-center uppercase tracking-wide">
-                {typeof error === 'object' ? 'Registration failed' : error}
-              </div>
+                {error && (
+                  <div className="p-3 bg-danger/10 border border-danger/20 rounded-xl text-danger text-xs font-bold text-center uppercase tracking-wide">
+                    {typeof error === 'object' 
+                      ? Object.entries(error).map(([key, value]) => `${key}: ${value}`).join(', ') 
+                      : error}
+                  </div>
+                )}
+
+                <div className="relative pt-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-100"></div>
+                  </div>
+                  <div className="relative flex justify-center text-[10px] uppercase tracking-[0.2em] font-black">
+                    <span className="bg-white px-4 text-gray-300">Social registration</span>
+                  </div>
+                </div>
+
+                <SocialLoginButtons />
+              </>
             )}
-
-            <div className="relative pt-2">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-100"></div>
-              </div>
-              <div className="relative flex justify-center text-[10px] uppercase tracking-[0.2em] font-black">
-                <span className="bg-white px-4 text-gray-300">Social registration</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <SleekButton variant="outline" className="!text-[10px] font-black h-12 uppercase tracking-widest">
-                Google
-              </SleekButton>
-              <SleekButton variant="outline" className="!text-[10px] font-black h-12 uppercase tracking-widest">
-                GitHub
-              </SleekButton>
-            </div>
           </SleekCard>
 
           <p className="text-center lg:text-left text-sm font-medium text-gray-500">

@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AuthProvider from "@/providers/AuthProvider";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useState } from "react";
 
 export default function ProvidersWrapper({ children }) {
@@ -19,8 +20,10 @@ export default function ProvidersWrapper({ children }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>{children}</AuthProvider>
-    </QueryClientProvider>
+    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>{children}</AuthProvider>
+      </QueryClientProvider>
+    </GoogleOAuthProvider>
   );
 }

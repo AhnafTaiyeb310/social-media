@@ -74,17 +74,17 @@ else:
     # --- LOCAL DEVELOPMENT SETTINGS ---
     SECURE_SSL_REDIRECT = False
     
-    # Allow cookies over plain HTTP for local testing
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
-    SESSION_COOKIE_SAMESITE = 'Lax'
-    CSRF_COOKIE_SAMESITE = 'Lax'
+    # Allow cookies over cross-origin local testing
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = 'None'
+    CSRF_COOKIE_SAMESITE = 'None'
     
     # Disable HSTS locally so you don't get locked out of http://127.0.0.1
     SECURE_HSTS_SECONDS = 0
     
     # JWT Auth Cookie Security (Local)
-    AUTH_COOKIE_SECURE = False
+    AUTH_COOKIE_SECURE = True
 
 # Global Settings (Apply to both environments)
 SESSION_COOKIE_HTTPONLY = True
@@ -159,7 +159,18 @@ EXTERNAL_APPS = [
     'apps.tags',
     'apps.utils',
 
+    'anymail',
+
     'apps.users',
+
+    # Allauth & DJ-Rest-Auth
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.facebook",
+    "dj_rest_auth",
+    "dj_rest_auth.registration",
 ]
 
 INSTALLED_APPS += EXTERNAL_APPS
@@ -177,6 +188,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -280,7 +292,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # JWT Configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -303,24 +315,75 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
 
-# Cookie Settings for JWT Refresh Token
-AUTH_COOKIE = "refresh_token"
-AUTH_COOKIE_HTTP_ONLY = True
-AUTH_COOKIE_SECURE = not DEBUG
-AUTH_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
-AUTH_COOKIE_PATH = '/'
+# Email Configuration
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = config("EMAIL_HOST", default="mailpit")
+    EMAIL_PORT = config("EMAIL_PORT", cast=int, default=1025)
+    EMAIL_HOST_USER = ""
+    EMAIL_HOST_PASSWORD = ""
+    EMAIL_USE_TLS = False
+    DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default=config("DJANGO_DEFAULT_FROM_EMAIL", default="development@example.com"))
+else:
+    EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+    ANYMAIL = {
+        "BREVO_API_KEY": config("BREVO_API_KEY", default=""),
+    }
+    DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default=config("DJANGO_DEFAULT_FROM_EMAIL", default="noreply@yourdomain.com"))
 
 # Social Auth Settings
 GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
 FACEBOOK_APP_ID = config('FACEBOOK_APP_ID', default='')
 FACEBOOK_APP_SECRET = config('FACEBOOK_APP_SECRET', default='')
 
+SOCIALACCOUNT_PROVIDERS = {
+    "google": { 
+        "APP": {
+            "client_id": GOOGLE_CLIENT_ID,
+            "secret": config('GOOGLE_CLIENT_SECRET', default=''),
+        },
+        "VERIFIED_EMAIL": True 
+    },
+    "facebook": {
+        "APP": {
+            "client_id": FACEBOOK_APP_ID,
+            "secret": FACEBOOK_APP_SECRET,
+        },
+        "METHOD": "oauth2",
+        "VERIFIED_EMAIL": True,
+        "SCOPE": ["email", "public_profile"],
+        "FIELDS": ["id", "email", "name", "first_name", "last_name", "picture"],
+    }
+}
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none" 
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_SIGNUP_FIELDS = ["email*", "username", "first_name", "last_name"]
+ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = config("ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL", default=None)
+FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
 
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 )
+ACCOUNT_ADAPTER = "apps.users.adapter.CustomAccountAdapter"
 AUTH_USER_MODEL = "users.CustomUser"
+
+REST_AUTH = {
+    "USE_JWT": True,
+    "JWT_AUTH_COOKIE": "access",
+    "JWT_AUTH_REFRESH_COOKIE": "refresh",
+    "JWT_AUTH_HTTPONLY": True,
+    "JWT_AUTH_SECURE": True, # Required for SameSite=None, Chrome allows this on localhost
+    "JWT_AUTH_SAMESITE": 'None',
+    "JWT_AUTH_RETURN_EXPIRATION": True,
+    "JWT_AUTH_COOKIE_USE_CSRF": True,
+    "REGISTER_SERIALIZER": "apps.users.serializers.RegisterSerializer",
+}
 
 
 # Cloudinary settings

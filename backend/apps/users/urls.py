@@ -1,8 +1,6 @@
-from django.urls import path
+from django.urls import path, include
 from rest_framework import routers
 from . import views
-from .auth_views import LoginView, RefreshView, LogoutView, RegisterView
-from .socials_auth_views import GoogleLoginView, FacebookLoginView
 
 # Profile and User ViewSets
 router = routers.DefaultRouter()
@@ -10,19 +8,18 @@ router.register('profile', views.ProfileViewSet, basename='profile')
 router.register('profiles', views.ProfileFollowViewset, basename='profiles')
 
 urlpatterns = [
-    # Auth endpoints
-    path('register/', RegisterView.as_view(), name='register'),
-    path('login/', LoginView.as_view(), name='login'),
+    # Auth endpoints via dj-rest-auth
+    path('auth/', include('dj_rest_auth.urls')),
+    # Custom verify-email MUST come before dj-rest-auth registration includes
+    path('auth/registration/verify-email/', views.VerifyEmailAPIView.as_view(), name='verify-email'),
+    path('auth/registration/', include('dj_rest_auth.registration.urls')),
 
-    path('refresh/', RefreshView.as_view(), name='refresh'),
-    path('logout/', LogoutView.as_view(), name='logout'),
-    
     # Force profile/me to be handled before the ViewSet lookup captures it
     path('profile/me/', views.ProfileViewSet.as_view({'get': 'me', 'put': 'me', 'patch': 'me'}), name='profile-me'),
 
     # Social Auth endpoints
-    path('auth/google/', GoogleLoginView.as_view(), name='google-login'),
-    path('auth/facebook/', FacebookLoginView.as_view(), name='facebook-login'),
+    path('auth/google/', views.GoogleLogin.as_view(), name='google-login'),
+    path('auth/facebook/', views.FacebookLogin.as_view(), name='facebook-login'),
 ]
 
 urlpatterns += router.urls

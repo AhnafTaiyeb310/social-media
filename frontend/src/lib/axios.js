@@ -1,69 +1,51 @@
-import { useAuthStore } from "@/store/useAuthStore";
-import axios from "axios"
+import axios from "axios";
+import Cookies from "js-cookie";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: true,
+  withCredentials: true, // Critical: sends cookies with every request
 });
 
-
-// Add a request interceptor
-api.interceptors.request.use(function (config) {
-  const token = useAuthStore.getState().accessToken;
-
-  if(token)
-    config.headers.Authorization = `Bearer ${token}`
-  
-  // Handle CSRF for production
-  if (typeof document !== 'undefined') {
-    const csrfToken = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('csrftoken='))
-      ?.split('=')[1];
-    
-    if (csrfToken) {
-      config.headers['X-CSRFToken'] = csrfToken;
-    }
+// 1. CSRF Interceptor
+api.interceptors.request.use((config) => {
+  const csrfToken = Cookies.get("csrftoken"); // Read from frontend cookie
+  if (csrfToken && config.method !== "get") {
+    config.headers["X-CSRFToken"] = csrfToken;
   }
-
   return config;
 }, function (error) {
   return Promise.reject(error);
-},
-);
+});
 
+// 2. Token Refresh Interceptor
 api.interceptors.response.use(
-  res => res,
+  (response) => response,
   async (error) => {
-    const request = error.config;
+    const originalRequest = error.config;
+    // Condition: 401, haven't retried yet, and isn't the refresh/login endpoint
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes("/auth/")) {
+      originalRequest._retry = true;
+      try {
+        // Ping refresh endpoint. Backend reads 'refresh' cookie, issues new 'access' cookie.
+        await axios.post(`${api.defaults.baseURL}/auth/token/refresh/`, {}, { withCredentials: true });
+        return api(originalRequest); // Retry original
+      } catch (refreshError) {
+        // Use auth store to handle client-side state
+        import('@/store/useAuthStore').then(({ useAuthStore }) => {
+          useAuthStore.getState().logout();
+        });
         
-    if(error.response?.status !== 401 || request._retry){
-      return Promise.reject(error);
-    }
-
-    request._retry = true;
-
-    try {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/refresh/`,
-        {}, { withCredentials: true }
-      )
-      const newAccessToken = res.data.access
-      useAuthStore.getState().setAccessToken(newAccessToken)
-
-      // retry with new token
-      request.headers.Authorization = `Bearer ${newAccessToken}`
-      return api(request)
-    } catch (error) {
-      useAuthStore.getState().logout();
-      // Force a hard redirect to login if we're on the client side
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        if (typeof window !== 'undefined') {
+          const isAuthPage = window.location.pathname === '/login' || window.location.pathname === '/signup';
+          if (!isAuthPage) {
+            window.location.href = '/login';
+          }
+        }
+        return Promise.reject(refreshError);
       }
-      return Promise.reject(error)
     }
+    return Promise.reject(error);
   }
-)
-
+);
 
 export default api;

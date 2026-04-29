@@ -16,6 +16,8 @@ import Image from 'next/image';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useCategories } from '@/features/post/hooks/usePost';
 
+import { DEFAULT_AVATAR } from '@/lib/constants';
+
 export default function PostForm({ initialData = null, onSubmit, isPending, buttonText = "Post Now" }) {
   const { user } = useAuthStore();
   const { data: categoriesData } = useCategories();
@@ -119,7 +121,7 @@ export default function PostForm({ initialData = null, onSubmit, isPending, butt
     onSubmit(data);
   };
 
-  const avatarSrc = user?.profile_picture_url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+  const avatarSrc = user?.profile_picture_url || DEFAULT_AVATAR;
 
   return (
     <div className="flex flex-col bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-neutral-900 dark:border-neutral-800 transition-all overflow-hidden">

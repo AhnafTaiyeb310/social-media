@@ -11,6 +11,8 @@ import {
 } from 'react-icons/lu';
 import { FaHeart, FaRegHeart } from 'react-icons/fa6';
 
+import { DEFAULT_AVATAR } from '@/lib/constants';
+
 export default function PostCard({ post, onClick }) {
   const { mutate: toggleLike, isPending: isLiking } = useLikePost();
 
@@ -48,7 +50,7 @@ export default function PostCard({ post, onClick }) {
               className="rounded-full object-cover ring-2 ring-white dark:ring-neutral-900"
               src={
                 author_profile?.profile_picture_url || 
-                'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'
+                DEFAULT_AVATAR
               }
               alt="Author Avatar"
               fill

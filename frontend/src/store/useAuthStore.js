@@ -1,64 +1,48 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import api from "@/lib/axios";
 
 export const useAuthStore = create(
   persist(
     (set, get) => ({
       // state
       user: null,
-      accessToken: null,
       isLoading: false,
 
       // derived state
       get isAuthenticated() {
-        return !!get().accessToken;
+        return !!get().user;
       },
 
       // actions
       setLoading: (value) => set({ isLoading: value }),
 
-      setAccessToken: (token) => {
-        set({ accessToken: token });
-        setAccessTokenCookie(token);
-      },
-
       setUser: (user) => set({ user }),
 
-      login: (token, user) => {
+      login: (user) => {
         set({
           user,
-          accessToken: token,
         });
-        setAccessTokenCookie(token);
       },
 
-      logout: () => {
-        set({
-          user: null,
-          accessToken: null,
-          isLoading: false,
-        });
-        setAccessTokenCookie(null);
+      logout: async () => {
+        try {
+           // We ping logout on backend to clear http-only cookies
+           await api.post("/auth/logout/");
+        } catch (e) {
+           console.error("Logout failed on server:", e);
+        } finally {
+          set({
+            user: null,
+            isLoading: false,
+          });
+        }
       },
     }),
 
     {
       name: 'auth-storage',
-      partialize: ({ accessToken, user }) => ({ accessToken, user }),
+      partialize: ({ user }) => ({ user }),
     },
   ),
 );
-
-
-// set access token in cookie just for proxy to redirect unauth user
-const setAccessTokenCookie = (token) => {
-  if (typeof document === 'undefined') return;
-
-  if (token) {
-    // Standard secure cookie format for production and development
-    const maxAge = 7 * 24 * 60 * 60; // 7 days
-    document.cookie = `accessToken=${token}; path=/; Max-Age=${maxAge}; SameSite=Lax;`;
-  } else {
-    document.cookie = 'accessToken=; path=/; Max-Age=0;';
-  }
-};

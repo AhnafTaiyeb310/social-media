@@ -106,3 +106,53 @@ class ProfileFollowViewset(GenericViewSet, RetrieveModelMixin):
         followings_profile = models.Profile.objects.filter(followers=profile.user)
         serializer = serializers.ProfileSerializer(followings_profile, many= True)
         return Response(serializer.data)
+
+
+# -------------------------------------------------------------
+# DJ-Rest-Auth Integrations (Social Logic + Email Verification)
+# -------------------------------------------------------------
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from dj_rest_auth.registration.views import SocialLoginView
+
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+    callback_url = "http://localhost:3000/"  # Matches frontend origin
+    client_class = OAuth2Client
+    permission_classes = [AllowAny]
+
+class FacebookLogin(SocialLoginView):
+    adapter_class = FacebookOAuth2Adapter
+    callback_url = "http://localhost:3000/"  # Matches frontend origin
+    client_class = OAuth2Client
+    permission_classes = [AllowAny]
+
+from allauth.account.models import EmailConfirmation, EmailConfirmationHMAC
+from urllib.parse import unquote
+from rest_framework.views import APIView
+
+class VerifyEmailAPIView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request, *args, **kwargs):
+        key = request.data.get('key')
+        if not key:
+            return Response({"error": "Key is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Ensure key is URL-decoded (important for keys containing colons)
+        key = unquote(key)
+        logger.info(f"Attempting to verify email with key: {key}")
+        confirmation = EmailConfirmationHMAC.from_key(key)
+        if not confirmation:
+            logger.warning(f"HMAC confirmation not found for key: {key}")
+            # Fallback to standard DB records
+            try:
+                confirmation = EmailConfirmation.objects.get(key=key) 
+                logger.info("Found confirmation in DB")
+            except EmailConfirmation.DoesNotExist:
+                logger.error(f"Confirmation not found in DB for key: {key}")
+                return Response({"error": "Invalid or expired key"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        confirmation.confirm(request) # Marks email as verified
+        logger.info(f"Verification successful for key: {key}")
+        return Response({"message": "Successfully verified"})

@@ -5,21 +5,21 @@ import { useAuthStore } from '@/store/useAuthStore';
 export const usePosts = () => {
   return useQuery({
     queryKey: ['posts'],
-    queryFn: getPosts,
+    queryFn: () => getPosts(),
   });
 };
 
 export const useCategories = () => {
   return useQuery({
     queryKey: ['categories'],
-    queryFn: getCategories,
+    queryFn: () => getCategories(),
   });
 };
 
 export const useTags = () => {
   return useQuery({
     queryKey: ['tags'],
-    queryFn: getTags,
+    queryFn: () => getTags(),
   });
 };
 
@@ -32,7 +32,7 @@ export const usePost = (id) => {
 };
 
 export const useFeed = () => {
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const user = useAuthStore((s) => s.user);
 
   return useInfiniteQuery({
     queryKey: ['feed'],
@@ -46,7 +46,7 @@ export const useFeed = () => {
       return undefined;
     },
     initialPageParam: 1,
-    enabled: !!accessToken,
+    enabled: !!user,
   });
 };
 

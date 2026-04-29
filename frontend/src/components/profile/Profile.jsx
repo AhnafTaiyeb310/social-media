@@ -15,6 +15,8 @@ import {
 } from 'react-icons/lu';
 import PostCard from './PostCard'; // Reusing your existing component
 
+import { DEFAULT_AVATAR } from '@/lib/constants';
+
 export default function Profile({ user, posts }) {
   const [activeTab, setActiveTab] = useState('posts');
 
@@ -38,7 +40,7 @@ export default function Profile({ user, posts }) {
             <div className="relative inline-block">
               <img
                 className="size-24 sm:size-32 rounded-3xl border-4 border-white dark:border-neutral-900 object-cover shadow-lg"
-                src={user?.avatar || 'https://i.pravatar.cc/150?u=ahnaf'}
+                src={user?.avatar || DEFAULT_AVATAR}
                 alt="Profile"
               />
               <span className="absolute bottom-2 right-2 size-5 bg-green-500 border-2 border-white dark:border-neutral-900 rounded-full"></span>

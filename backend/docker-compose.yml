@@ -1,9 +1,10 @@
 services:
   web:
-    build: "./backend"
-    command: "python manage.py runserver 0.0.0.0:8000"
+    build: "."
+    command: uv run python manage.py runserver 0.0.0.0:8000
     volumes:
-      - "./backend:/app"
+      - ".:/app"
+      - "/app/.venv"
     ports:
       - "8000:8000"
     depends_on:
@@ -11,7 +12,7 @@ services:
     networks:
       - app-network
     env_file:
-      - "./backend/.env"
+      - ".env"
 
   redis:
     image: "redis:7"
@@ -21,15 +22,26 @@ services:
       - app-network
 
   celery:
-    build: "./backend"
-    command: "celery -A core worker -l info"
+    build: "."
+    volumes:
+      - ".:/app"
+      - "/app/.venv"
+    command: uv run celery -A core worker -l info
     depends_on:
       - redis
       - web
     networks:
       - app-network
     env_file:
-      - "./backend/.env"
+      - ".env"
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - app-network
 
 networks:
   app-network:

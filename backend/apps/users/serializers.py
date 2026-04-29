@@ -1,35 +1,21 @@
 import cloudinary
 from rest_framework import serializers
 from . import models
+from dj_rest_auth.registration.serializers import RegisterSerializer as DefaultRegisterSerializer
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.CustomUser
         fields = ['id', 'email', 'username', 'first_name', 'last_name']
 
-class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-    confirm_password = serializers.CharField(write_only=True)
+class RegisterSerializer(DefaultRegisterSerializer):
+    first_name = serializers.CharField(required=False)
+    last_name = serializers.CharField(required=False)
 
-    class Meta:
-        model = models.CustomUser
-        fields = ['email', 'username', 'first_name', 'last_name', 'password', 'confirm_password']
-
-    def validate(self, data):
-        if data['password'] != data['confirm_password']:
-            raise serializers.ValidationError({"password": "Passwords do not match"})
-        return data
-
-    def create(self, validated_data):
-        validated_data.pop('confirm_password')
-        user = models.CustomUser.objects.create_user(
-            email=validated_data['email'],
-            username=validated_data['username'],
-            first_name=validated_data.get('first_name', ''),
-            last_name=validated_data.get('last_name', ''),
-            password=validated_data['password']
-        )
-        return user
+    def custom_signup(self, request, user):
+        user.first_name = self.validated_data.get('first_name', '')
+        user.last_name = self.validated_data.get('last_name', '')
+        user.save()
 
 class ProfileSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(read_only=True)

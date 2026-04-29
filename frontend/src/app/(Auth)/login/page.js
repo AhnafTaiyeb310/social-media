@@ -1,9 +1,41 @@
 'use client'
-import { useLogin } from '@/features/auth/hooks/useLogin';
+import { useLogin, useSocialAuth } from '@/features/auth/hooks/useLogin';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import React, { useState } from 'react'
 import { SleekButton, SleekInput, SleekCard } from '../../../components/ui/SleekElements';
 import { LuLoader } from 'react-icons/lu';
+import { useGoogleLogin } from '@react-oauth/google';
+
+function SocialLoginButtons() {
+  const { handleGoogleLogin, handleFacebookLogin, isLoading, error } = useSocialAuth();
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: (codeResponse) => handleGoogleLogin(codeResponse.access_token),
+    flow: 'implicit',
+  });
+
+  const fbLogin = () => {
+    // Basic redirect for Facebook or handled separately if SDK installed
+    // handleFacebookLogin(token)
+    alert("Facebook integration requires frontend SDK. See docs.");
+  }
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-4">
+        <SleekButton onClick={() => googleLogin()} disabled={isLoading} type="button" variant="outline" className="!text-[10px] font-black h-12 uppercase tracking-widest">
+          Google
+        </SleekButton>
+        <SleekButton onClick={fbLogin} disabled={isLoading} type="button" variant="outline" className="!text-[10px] font-black h-12 uppercase tracking-widest">
+          Facebook
+        </SleekButton>
+      </div>
+      {error && <p className="text-red-500 text-xs text-center mt-2">{error}</p>}
+    </>
+  )
+}
 
 function Login() {
   const [form, setForm] = useState({
@@ -11,6 +43,14 @@ function Login() {
     password: "",
   })
   const { handleLogin, error, isLoading } = useLogin();
+  const isAuthenticated = useAuthStore(s => !!s.user);
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/');
+    }
+  }, [isAuthenticated, router]);
     
   const handleSubmit = async (e)=> {
     e.preventDefault();
@@ -113,14 +153,7 @@ function Login() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <SleekButton variant="outline" className="!text-[10px] font-black h-12 uppercase tracking-widest">
-                Google
-              </SleekButton>
-              <SleekButton variant="outline" className="!text-[10px] font-black h-12 uppercase tracking-widest">
-                GitHub
-              </SleekButton>
-            </div>
+            <SocialLoginButtons />
           </SleekCard>
 
           <p className="text-center lg:text-left text-sm font-medium text-gray-500">

@@ -1,21 +1,21 @@
 import { NextResponse } from 'next/server';
 
 export default function middleware(request) {
-  const token = request.cookies.get('accessToken')?.value;
+  const token = request.cookies.get('access')?.value;
   const { pathname } = request.nextUrl;
 
-  // 1. Define Public and Protected paths
-  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/signup');
+  // 1. Define Public paths (accessible without login)
+  const publicPaths = ['/login', '/signup', '/verify-email'];
+  const isPublicPage = publicPaths.some(path => pathname.startsWith(path));
   
-  // 2. Logic: If no token and not on an auth page, force login
-  if (!token && !isAuthPage) {
+  // 2. Logic: If no token and not on a public page, force redirect to login
+  if (!token && !isPublicPage) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // 3. Logic: If has token and trying to access login/signup, go home
-  if (token && isAuthPage) {
-    return NextResponse.redirect(new URL('/', request.url));
-  }
+  // NOTE: We moved the "Redirect to Home if already logged in" logic to the 
+  // client-side (app components) to prevent infinite redirect loops 
+  // when an expired 'access' cookie remains in the browser.
 
   return NextResponse.next();
 }
