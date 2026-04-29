@@ -31,9 +31,9 @@ RUN SECRET_KEY=dummy_key_for_build uv run python manage.py collectstatic --noinp
 # 8. Expose the port
 EXPOSE 8000
 
-# 9. BULLETPROOF STARTUP
+# 9. FINAL BOSS STARTUP
 # We add the virtualenv to the PATH so we can run gunicorn directly
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Simplified CMD to ensure Gunicorn starts correctly
-CMD ["sh", "-c", "python manage.py migrate --noinput && python create_admin.py && gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --workers 2"]
+# Simplified CMD with 'exec' and 1 worker for Free Tier stability
+CMD ["sh", "-c", "python manage.py migrate --noinput && python create_admin.py && exec gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --workers 1"]
