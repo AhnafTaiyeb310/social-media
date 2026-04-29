@@ -25,7 +25,8 @@ COPY . .
 
 # --- NEW: OPTIMIZATIONS ---
 # Run collectstatic during the BUILD phase so the app starts faster
-RUN uv run python manage.py collectstatic --noinput
+# We provide a dummy SECRET_KEY so Django doesn't crash during build.
+RUN SECRET_KEY=dummy_key_for_build uv run python manage.py collectstatic --noinput
 
 # 8. Expose the port
 EXPOSE 8000

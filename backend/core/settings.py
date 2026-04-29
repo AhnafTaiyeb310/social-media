@@ -28,14 +28,15 @@ from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 # 1. Setup Sentry
-sentry_sdk.init(
-    dsn=config('SENTRY_DSN'), 
-    integrations=[DjangoIntegration()],
-    traces_sample_rate=1.0,
-    send_default_pii=True,
-    # Enable sending logs to Sentry
-    enable_logs=True,
-)
+SENTRY_DSN = config('SENTRY_DSN', default=None)
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN, 
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=1.0,
+        send_default_pii=True,
+        enable_logs=True,
+    )
 
 # 2. Now just use standard Python logging anywhere in your app
 logger = logging.getLogger(__name__)
@@ -387,12 +388,16 @@ REST_AUTH = {
 
 
 # Cloudinary settings
-cloudinary.config(
-    cloud_name = config("CLOUD_NAME"),
-    api_key = config("API_KEY"),
-    api_secret = config("API_SECRET"),
-    
-)
+CLOUDINARY_NAME = config("CLOUD_NAME", default=None)
+CLOUDINARY_API_KEY = config("API_KEY", default=None)
+CLOUDINARY_API_SECRET = config("API_SECRET", default=None)
+
+if all([CLOUDINARY_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET]):
+    cloudinary.config(
+        cloud_name = CLOUDINARY_NAME,
+        api_key = CLOUDINARY_API_KEY,
+        api_secret = CLOUDINARY_API_SECRET,
+    )
 
 # Celery Configuration
 CELERY_BROKER_URL = config('CELERY_BROKER_URL', default="redis://redis:6379/0")
