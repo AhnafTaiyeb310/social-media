@@ -326,11 +326,19 @@ if DEBUG:
     EMAIL_USE_TLS = False
     DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default=config("DJANGO_DEFAULT_FROM_EMAIL", default="development@example.com"))
 else:
-    EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
-    ANYMAIL = {
-        "BREVO_API_KEY": config("BREVO_API_KEY", default=""),
-    }
-    DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default=config("DJANGO_DEFAULT_FROM_EMAIL", default="noreply@yourdomain.com"))
+    BREVO_KEY = config("BREVO_API_KEY", default=None)
+    if BREVO_KEY:
+        EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+        ANYMAIL = {
+            "BREVO_API_KEY": BREVO_KEY,
+            "IGNORE_RECIPIENT_STATUS": True,
+            "REQUEST_TIMEOUT": 10, # Don't hang for more than 10 seconds
+        }
+    else:
+        # Fallback to console if key is missing so the app doesn't crash
+        EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    
+    DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@yourdomain.com")
 
 # Social Auth Settings
 GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
@@ -355,6 +363,36 @@ SOCIALACCOUNT_PROVIDERS = {
         "SCOPE": ["email", "public_profile"],
         "FIELDS": ["id", "email", "name", "first_name", "last_name", "picture"],
     }
+}
+
+# Logging for Production Debugging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': config('DJANGO_LOG_LEVEL', default='INFO'),
+            'propagate': False,
+        },
+    },
 }
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = "none" 

@@ -31,7 +31,9 @@ RUN SECRET_KEY=dummy_key_for_build uv run python manage.py collectstatic --noinp
 # 8. Expose the port
 EXPOSE 8000
 
-# 9. Optimized Start Command
-# We run migrations and admin creation, then start gunicorn. 
-# We use ';' instead of '&&' to ensure the server tries to start even if migrations are already done.
-CMD ["sh", "-c", "uv run python manage.py migrate --noinput; uv run python create_admin.py; uv run gunicorn core.wsgi:application --bind 0.0.0.0:$PORT"]
+# 9. BULLETPROOF STARTUP
+# We add the virtualenv to the PATH so we can run gunicorn directly
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Simplified CMD to ensure Gunicorn starts correctly
+CMD ["sh", "-c", "python manage.py migrate --noinput && python create_admin.py && gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --workers 2"]
