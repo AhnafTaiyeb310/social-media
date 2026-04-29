@@ -118,13 +118,13 @@ from dj_rest_auth.registration.views import SocialLoginView
 
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
-    callback_url = "http://localhost:3000/"  # Matches frontend origin
+    callback_url = settings.FRONTEND_URL
     client_class = OAuth2Client
     permission_classes = [AllowAny]
 
 class FacebookLogin(SocialLoginView):
     adapter_class = FacebookOAuth2Adapter
-    callback_url = "http://localhost:3000/"  # Matches frontend origin
+    callback_url = settings.FRONTEND_URL
     client_class = OAuth2Client
     permission_classes = [AllowAny]
 
