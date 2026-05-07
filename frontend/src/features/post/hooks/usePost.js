@@ -67,9 +67,83 @@ export const useLikePost = () => {
 
   return useMutation({
     mutationFn: (id) => likePost(id),
-    onSuccess: (data, id) => {
+    onMutate: async (id) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['post', id] });
+      await queryClient.cancelQueries({ queryKey: ['feed'] });
+      await queryClient.cancelQueries({ queryKey: ['posts'] });
+
+      // Snapshot the previous value
+      const previousPost = queryClient.getQueryData(['post', id]);
+      const previousFeed = queryClient.getQueryData(['feed']);
+      const previousPosts = queryClient.getQueryData(['posts']);
+
+      const updatePostData = (oldData) => {
+        if (!oldData) return oldData;
+
+        // Helper to update a single post object
+        const updatePost = (post) => {
+          if (post.id === id) {
+            const isLiked = !post.is_liked;
+            return {
+              ...post,
+              is_liked: isLiked,
+              likes_count: isLiked ? (post.likes_count || 0) + 1 : Math.max(0, (post.likes_count || 0) - 1),
+            };
+          }
+          return post;
+        };
+
+        // Handle Infinite Query (pages)
+        if (oldData.pages) {
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) => ({
+              ...page,
+              results: page.results?.map(updatePost),
+            })),
+          };
+        }
+
+        // Handle Standard Paginated List (results)
+        if (oldData.results) {
+          return {
+            ...oldData,
+            results: oldData.results.map(updatePost),
+          };
+        }
+
+        // Handle Array List
+        if (Array.isArray(oldData)) {
+          return oldData.map(updatePost);
+        }
+
+        // Handle Single Post Object
+        if (oldData.id === id) {
+          return updatePost(oldData);
+        }
+
+        return oldData;
+      };
+
+      // Optimistically update to the new value
+      if (previousPost) queryClient.setQueryData(['post', id], updatePostData(previousPost));
+      if (previousFeed) queryClient.setQueryData(['feed'], updatePostData(previousFeed));
+      if (previousPosts) queryClient.setQueryData(['posts'], updatePostData(previousPosts));
+
+      return { previousPost, previousFeed, previousPosts };
+    },
+    // If the mutation fails, use the context returned from onMutate to roll back
+    onError: (err, id, context) => {
+      if (context?.previousPost) queryClient.setQueryData(['post', id], context.previousPost);
+      if (context?.previousFeed) queryClient.setQueryData(['feed'], context.previousFeed);
+      if (context?.previousPosts) queryClient.setQueryData(['posts'], context.previousPosts);
+    },
+    // Always refetch after error or success to make sure the server state is in sync
+    onSettled: (data, err, id) => {
       queryClient.invalidateQueries({ queryKey: ['post', id] });
       queryClient.invalidateQueries({ queryKey: ['feed'] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
   });
 };
