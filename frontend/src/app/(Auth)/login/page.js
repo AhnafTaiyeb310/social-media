@@ -7,6 +7,7 @@ import React, { useState } from 'react'
 import { SleekButton, SleekInput, SleekCard } from '../../../components/ui/SleekElements';
 import { LuLoader } from 'react-icons/lu';
 import { useGoogleLogin } from '@react-oauth/google';
+import FacebookLogin from '@greatsumini/react-facebook-login';
 
 function SocialLoginButtons() {
   const { handleGoogleLogin, handleFacebookLogin, isLoading, error } = useSocialAuth();
@@ -16,21 +17,26 @@ function SocialLoginButtons() {
     flow: 'implicit',
   });
 
-  const fbLogin = () => {
-    // Basic redirect for Facebook or handled separately if SDK installed
-    // handleFacebookLogin(token)
-    alert("Facebook integration requires frontend SDK. See docs.");
-  }
-
   return (
     <>
       <div className="grid grid-cols-2 gap-4">
         <SleekButton onClick={() => googleLogin()} disabled={isLoading} type="button" variant="outline" className="!text-[10px] font-black h-12 uppercase tracking-widest">
           Google
         </SleekButton>
-        <SleekButton onClick={fbLogin} disabled={isLoading} type="button" variant="outline" className="!text-[10px] font-black h-12 uppercase tracking-widest">
-          Facebook
-        </SleekButton>
+        <FacebookLogin
+          appId={process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "1670311213980599"}
+          onSuccess={(response) => {
+            handleFacebookLogin(response.accessToken);
+          }}
+          onFail={(error) => {
+            console.error('Facebook Login Failed!', error);
+          }}
+          render={({ onClick }) => (
+            <SleekButton onClick={onClick} disabled={isLoading} type="button" variant="outline" className="!text-[10px] font-black h-12 uppercase tracking-widest w-full">
+              Facebook
+            </SleekButton>
+          )}
+        />
       </div>
       {error && <p className="text-red-500 text-xs text-center mt-2">{error}</p>}
     </>

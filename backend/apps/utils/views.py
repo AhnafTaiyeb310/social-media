@@ -22,11 +22,23 @@ class GlobalSearchAPIView(APIView):
             })
 
         # 1. Search Posts
+        from apps.tags.models import TaggedItem
+        from django.contrib.contenttypes.models import ContentType
+        content_type = ContentType.objects.get_for_model(Post)
+        
+        tagged_post_ids = TaggedItem.objects.filter(
+            content_type=content_type,
+            tag__tag__icontains=query
+        ).values_list('object_id', flat=True)
+
         posts = Post.objects.filter(
-            Q(title__icontains=query) | 
-            Q(content__icontains=query) |
-            Q(status='published')
-        ).select_related('author', 'category').prefetch_related('images')[:5]
+            Q(status='published') &
+            (
+                Q(title__icontains=query) | 
+                Q(content__icontains=query) |
+                Q(id__in=tagged_post_ids)
+            )
+        ).select_related('author', 'category').prefetch_related('images').distinct()[:5]
 
         # 2. Search Users (Profiles)
         profiles = Profile.objects.filter(
