@@ -123,6 +123,7 @@ CSRF_USE_SESSIONS = False
 # Application definition
 # -------------------------------
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -152,6 +153,9 @@ EXTERNAL_APPS = [
     # Auth
     'rest_framework_simplejwt',
 
+    # Channels
+    'channels',
+
     # Local Dynamic Apps
     
     'apps.blog',
@@ -159,6 +163,7 @@ EXTERNAL_APPS = [
     'apps.likes',
     'apps.tags',
     'apps.utils',
+    'apps.chat',
 
     'anymail',
 
@@ -210,6 +215,21 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'core.wsgi.application'
+ASGI_APPLICATION = 'core.asgi.application'
+
+# Channel Layers (Redis)
+REDIS_HOST = config('REDIS_HOST', default='localhost')
+if os.path.exists('/.dockerenv') and REDIS_HOST == 'localhost':
+    REDIS_HOST = 'redis'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [config('REDIS_URL', default=f"redis://{REDIS_HOST}:6379/0")],
+        },
+    },
+}
 
 DATABASE_URL = config("DATABASE_URL", default=None)
 

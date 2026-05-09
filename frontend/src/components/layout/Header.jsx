@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
+import MessagesDropdown from "@/features/chat/components/MessagesDropdown";
 
 export default function Header() {
   const { user, logout } = useAuthStore();
@@ -48,6 +49,8 @@ export default function Header() {
               <LuSearch className="shrink-0 size-4" />
               <span className="sr-only">Search</span>
             </button>
+
+            <MessagesDropdown />
 
             <Link
               href="/notifications"

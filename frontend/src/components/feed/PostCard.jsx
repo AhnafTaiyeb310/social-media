@@ -10,6 +10,7 @@ import {
   LuShare2,
 } from 'react-icons/lu';
 import { FaHeart, FaRegHeart } from 'react-icons/fa6';
+import Link from 'next/link';
 
 import { DEFAULT_AVATAR } from '@/lib/constants';
 
@@ -44,10 +45,14 @@ export default function PostCard({ post, onClick }) {
     >
       {/* 1. Header: Author Info & Options */}
       <div className="p-4 pb-2 flex items-center justify-between">
-        <div className="flex items-center gap-x-3">
+        <Link 
+          href={`/profile/${author}`}
+          onClick={(e) => e.stopPropagation()}
+          className="flex items-center gap-x-3 group cursor-pointer"
+        >
           <div className="size-10 flex-shrink-0 relative">
             <Image
-              className="rounded-full object-cover ring-2 ring-white dark:ring-neutral-900"
+              className="rounded-full object-cover ring-2 ring-white dark:ring-neutral-900 group-hover:ring-blue-500 transition-all"
               src={
                 author_profile?.profile_picture_url || 
                 DEFAULT_AVATAR
@@ -60,7 +65,7 @@ export default function PostCard({ post, onClick }) {
           </div>
           <div>
             <div className="flex items-center gap-x-1">
-              <h3 className="font-semibold text-gray-800 dark:text-neutral-200">
+              <h3 className="font-semibold text-gray-800 dark:text-neutral-200 group-hover:text-blue-600 transition-colors">
                 {author_profile?.first_name} {author_profile?.last_name}
               </h3>
               <LuBadgeCheck className="size-3.5 text-blue-500 fill-blue-500/10" />
@@ -72,7 +77,7 @@ export default function PostCard({ post, onClick }) {
               @{author || 'user'}
             </p>
           </div>
-        </div>
+        </Link>
 
         {/* Preline Dropdown for Post Actions */}
         <div className="hs-dropdown relative inline-flex">

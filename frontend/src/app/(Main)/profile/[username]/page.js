@@ -18,11 +18,26 @@ import { useProfile } from '@/features/auth/hooks/useLogin';
 import { usePosts } from '@/features/post/hooks/usePost';
 import PostCard from '@/components/feed/PostCard';
 import Image from 'next/image';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useChatStore } from '@/store/useChatStore';
+import { getOrCreateConversation } from '@/features/chat/api/chatApi';
+import { DEFAULT_AVATAR } from '@/lib/constants';
 
 export default function ProfilePage() {
   const { username } = useParams();
   const { data: profile, isLoading: isProfileLoading } = useProfile(username);
   const { data: postsData, isLoading: isPostsLoading } = usePosts();
+  const { user: currentUser } = useAuthStore();
+  const { openChat } = useChatStore();
+
+  const handleMessageClick = async () => {
+    try {
+      const conv = await getOrCreateConversation(profile.user_id);
+      openChat(conv);
+    } catch (error) {
+      console.error('Failed to open chat:', error);
+    }
+  };
   
   const [activeTab, setActiveTab] = useState('posts');
   const [isMounted, setIsMounted] = useState(false);
@@ -54,7 +69,7 @@ export default function ProfilePage() {
     (p) => p.author === username && p.status === 'published'
   ) || [];
 
-  const defaultAvatar = 'https://images.unsplash.com/photo-1531927557220-a9e23c1e4794?auto=format&fit=facearea&facepad=2&w=300&h=300&q=80';
+  const defaultAvatar = DEFAULT_AVATAR;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20 px-4 pt-6">
@@ -83,6 +98,16 @@ export default function ProfilePage() {
               <button className="p-2.5 rounded-xl border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-800 transition">
                 <LuShare2 className="size-5 text-gray-600 dark:text-neutral-400" />
               </button>
+              
+              {currentUser?.username !== profile.username && (
+                <button 
+                  onClick={handleMessageClick}
+                  className="py-2.5 px-5 inline-flex items-center gap-x-2 text-sm font-semibold rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-gray-800 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800 shadow-sm transition"
+                >
+                  <LuMessageSquare className="size-4" /> Message
+                </button>
+              )}
+
               <button className="py-2.5 px-5 inline-flex items-center gap-x-2 text-sm font-semibold rounded-xl border border-transparent bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition">
                 <LuPlus className="size-4" /> Follow
               </button>

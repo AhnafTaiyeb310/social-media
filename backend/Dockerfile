@@ -36,4 +36,4 @@ EXPOSE 8000
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Simplified CMD with 'exec' and 1 worker for Free Tier stability
-CMD ["sh", "-c", "python manage.py migrate --noinput && python create_admin.py && exec gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --workers 1"]
+CMD ["sh", "-c", "python manage.py migrate --noinput && python create_admin.py && exec daphne -b 0.0.0.0 -p $PORT core.asgi:application"]

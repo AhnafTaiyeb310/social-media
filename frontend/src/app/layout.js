@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import Script from 'next/script';
 import PrelineScriptWrapper from "../components/PrelineScriptWrapper";
 import SearchModal from "../components/navigation/SearchModal";
+import ChatContainer from "@/features/chat/components/ChatContainer";
 import "./globals.css";
 import { Toaster } from "sonner";
 
@@ -47,6 +48,7 @@ export default function RootLayout({ children }) {
         <ProvidersWrapper>
           {children}
           <SearchModal />
+          <ChatContainer />
           <Toaster richColors position="top-center" />
         </ProvidersWrapper>
         <PrelineScriptWrapper />
