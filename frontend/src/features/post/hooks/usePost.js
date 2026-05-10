@@ -56,8 +56,9 @@ export const useCreatePost = () => {
   return useMutation({
     mutationFn: (data) => createPost(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      // Invalidate both feed and posts to ensure all views are updated
       queryClient.invalidateQueries({ queryKey: ['feed'] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
   });
 };

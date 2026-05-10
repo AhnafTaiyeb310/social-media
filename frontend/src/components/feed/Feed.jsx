@@ -4,10 +4,14 @@ import { useInView } from 'react-intersection-observer';
 import CreatePost from './CreatePost';
 import PostCard from './PostCard';
 import PostDetail from './PostDetail';
-import { useFeed } from '@/features/post/hooks/usePost';
+import { useFeed, useDeletePost } from '@/features/post/hooks/usePost';
+import { LuInfo } from 'react-icons/lu';
+import { toast } from 'sonner';
 
 export default function Feed() {
   const [activePost, setActivePost] = useState(null);
+  const [postToDelete, setPostToDelete] = useState(null);
+  
   const { 
     data, 
     isLoading, 
@@ -16,6 +20,8 @@ export default function Feed() {
     fetchNextPage, 
     isError 
   } = useFeed();
+
+  const { mutate: deletePost, isPending: isDeleting } = useDeletePost();
   
   const { ref, inView } = useInView({
     threshold: 0.1,
@@ -29,6 +35,13 @@ export default function Feed() {
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage, isLoading]);
 
   const posts = data?.pages.flatMap(page => page.results) || [];
+  
+  // Re-initialize Preline components when posts data changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.HSStaticMethods) {
+      window.HSStaticMethods.autoInit();
+    }
+  }, [posts]);
 
   if (isLoading && !isFetchingNextPage) {
     return (
@@ -53,6 +66,7 @@ export default function Feed() {
             key={post.id}
             post={post}
             onClick={() => setActivePost(post)}
+            onSelectForDelete={() => setPostToDelete(post)}
           />
         ))}
       </div>
@@ -80,6 +94,55 @@ export default function Feed() {
       {activePost && (
         <PostDetail post={activePost} onClose={() => setActivePost(null)} />
       )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      <div id="hs-delete-post-modal" className="hs-overlay hidden size-full fixed top-0 start-0 z-[100] overflow-x-hidden overflow-y-auto pointer-events-none flex items-center justify-center">
+        <div className="hs-overlay-open:opacity-100 hs-overlay-open:duration-500 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto">
+          <div className="relative flex flex-col bg-white border shadow-sm rounded-2xl dark:bg-neutral-900 dark:border-neutral-800 pointer-events-auto">
+            <div className="p-4 sm:p-10 text-center">
+              <span className="mb-4 inline-flex justify-center items-center size-16 rounded-full border-4 border-red-50 bg-red-100 text-red-500 dark:bg-red-700 dark:border-red-600 dark:text-red-100">
+                <LuInfo className="size-8" />
+              </span>
+              <h3 className="mb-2 text-2xl font-bold text-gray-800 dark:text-neutral-200">
+                Delete Post?
+              </h3>
+              <p className="text-gray-500 dark:text-neutral-500">
+                Are you sure you want to delete <span className="font-bold text-gray-800 dark:text-neutral-200">&quot;{postToDelete?.title || "this post"}&quot;</span>? 
+                This action cannot be undone.
+              </p>
+              <div className="mt-8 flex justify-center gap-x-3">
+                <button 
+                  type="button" 
+                  className="py-2.5 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-xl border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 dark:bg-neutral-900 dark:border-neutral-800 dark:text-white dark:hover:bg-neutral-800" 
+                  data-hs-overlay="#hs-delete-post-modal"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    if (!postToDelete) return;
+                    deletePost(postToDelete.id, {
+                      onSuccess: () => {
+                        toast.success('Post deleted');
+                        if (window.HSOverlay) window.HSOverlay.close('#hs-delete-post-modal');
+                        setPostToDelete(null);
+                      },
+                      onError: () => {
+                        toast.error('Failed to delete post');
+                      }
+                    });
+                  }} 
+                  disabled={isDeleting || !postToDelete} 
+                  className="py-2.5 px-4 inline-flex items-center gap-x-2 text-sm font-bold rounded-xl border border-transparent bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 shadow-lg shadow-red-500/20"
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete Permanently'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

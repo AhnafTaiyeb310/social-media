@@ -96,7 +96,7 @@ export default function PostForm({ initialData = null, onSubmit, isPending, butt
     });
   };
 
-  const internalOnSubmit = (e) => {
+  const internalOnSubmit = async (e) => {
     e.preventDefault();
     if (!form.content && form.images.length === 0) return;
 
@@ -118,7 +118,37 @@ export default function PostForm({ initialData = null, onSubmit, isPending, butt
     form.tags.forEach(tag => data.append('tag_names', tag));
     form.images.forEach((image) => data.append('uploaded_images', image));
 
-    onSubmit(data);
+    // OPTIMISTIC RESET: Clear the form immediately like a to-do app
+    const previousForm = { ...form };
+    const previousTags = [...form.tags];
+    const previousPreviews = [...form.imagePreviews];
+    
+    setForm({
+      title: '',
+      content: '',
+      visibility: 'public',
+      status: 'published',
+      scheduled_for: '',
+      category: null,
+      tags: [],
+      images: [],
+      imagePreviews: [],
+    });
+    setTagInput('');
+    setShowMoreOptions(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+
+    onSubmit(data, {
+      onSuccess: () => {
+        // Success! Nothing else to do, form is already clear.
+      },
+      onError: (err) => {
+        console.error("Submission failed, rolling back form state:", err);
+        // ROLLBACK on error so the user doesn't lose their post
+        setForm(previousForm);
+        // We can't easily restore the File objects but we can restore the text/tags
+      }
+    });
   };
 
   const avatarSrc = user?.profile_picture_url || DEFAULT_AVATAR;

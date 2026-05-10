@@ -1,5 +1,5 @@
 'use client';
-import { useLikePost } from '@/features/post/hooks/usePost';
+import { useLikePost, useDeletePost } from '@/features/post/hooks/usePost';
 import Image from 'next/image';
 import {
   LuBadgeCheck,
@@ -8,13 +8,17 @@ import {
   LuHeart,
   LuMessageCircle,
   LuShare2,
+  LuTrash2,
 } from 'react-icons/lu';
 import { FaHeart, FaRegHeart } from 'react-icons/fa6';
 import Link from 'next/link';
+import { useAuthStore } from '@/store/useAuthStore';
+import { toast } from 'sonner';
 
 import { DEFAULT_AVATAR } from '@/lib/constants';
 
-export default function PostCard({ post, onClick }) {
+export default function PostCard({ post, onClick, onSelectForDelete }) {
+  const { user } = useAuthStore();
   const { mutate: toggleLike, isPending: isLiking } = useLikePost();
 
   // Destructuring based on your Django model
@@ -36,12 +40,23 @@ export default function PostCard({ post, onClick }) {
     toggleLike(id);
   };
 
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    onSelectForDelete();
+  };
+
+  const isAuthor = user?.username === author;
+
 
 
   return (
     <div
-      onClick={onClick}
-      className="flex flex-col bg-white border border-gray-200 rounded-xl hover:shadow-sm transition dark:bg-neutral-900 dark:border-neutral-800"
+      onClick={(e) => {
+        // If the click is inside a dropdown or footer actions, don't open the detail view
+        if (e.target.closest('.hs-dropdown') || e.target.closest('.engagement-actions')) return;
+        onClick();
+      }}
+      className="flex flex-col bg-white border border-gray-200 rounded-xl hover:shadow-sm transition dark:bg-neutral-900 dark:border-neutral-800 cursor-pointer"
     >
       {/* 1. Header: Author Info & Options */}
       <div className="p-4 pb-2 flex items-center justify-between">
@@ -95,9 +110,20 @@ export default function PostCard({ post, onClick }) {
             <button className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 w-full dark:text-neutral-400 dark:hover:bg-neutral-700">
               Follow User
             </button>
-            <button className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-red-600 hover:bg-red-50 w-full dark:text-red-500 dark:hover:bg-red-900/20">
-              Report Post
-            </button>
+            {isAuthor ? (
+              <button 
+                onClick={handleDelete}
+                data-hs-overlay="#hs-delete-post-modal"
+                className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-red-600 hover:bg-red-50 w-full dark:text-red-500 dark:hover:bg-red-900/20"
+              >
+                <LuTrash2 className="size-4" />
+                Delete Post
+              </button>
+            ) : (
+              <button className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-red-600 hover:bg-red-50 w-full dark:text-red-500 dark:hover:bg-red-900/20">
+                Report Post
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -137,7 +163,9 @@ export default function PostCard({ post, onClick }) {
       )}
 
       {/* 4. Footer: Engagement Actions */}
-      <div className="p-4 pt-2 border-t border-gray-100 dark:border-neutral-800 mt-2">
+      <div 
+        className="p-4 pt-2 border-t border-gray-100 dark:border-neutral-800 mt-2 engagement-actions"
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-x-5">
             <button
