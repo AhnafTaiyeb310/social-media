@@ -36,22 +36,35 @@ export const useChat = (conversationId) => {
     };
 
     ws.onmessage = (event) => {
-      const newMessage = JSON.parse(event.data);
+      const data = JSON.parse(event.data);
+      // Backend might send it as 'message' or 'text'
+      const newMessage = {
+        ...data,
+        text: data.text || data.message,
+        timestamp: data.timestamp || new Date().toISOString(),
+      };
       
-      // Update messages cache
+      // 1. Update messages cache for the current conversation
       queryClient.setQueryData(['chat', conversationId, 'messages'], (old) => {
         if (!old) return { results: [newMessage] };
         
-        // Handle both paginated and non-paginated structures
-        if (Array.isArray(old)) {
-          return [...old, newMessage];
-        }
+        const currentResults = old.results || (Array.isArray(old) ? old : []);
         
-        return {
-          ...old,
-          results: [...(old.results || []), newMessage],
-        };
+        // Prevent duplicates (optional but good)
+        if (currentResults.some(m => m.id === newMessage.id)) return old;
+
+        const updatedResults = [...currentResults, newMessage];
+
+        return old.results 
+          ? { ...old, results: updatedResults }
+          : updatedResults;
       });
+
+      // 2. Invalidate conversations list to update 'last_message' in dropdown/sidebar
+      // We use a slight delay to ensure the backend has finished processing
+      setTimeout(() => {
+        queryClient.invalidateQueries(['chat', 'conversations']);
+      }, 500);
     };
 
     ws.onclose = () => {

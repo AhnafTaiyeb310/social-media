@@ -9,6 +9,7 @@ export default function ChatContainer() {
 
   return (
     <ChatModal 
+      key={activeConversation?.id}
       conversation={activeConversation} 
       onClose={closeChat} 
     />
