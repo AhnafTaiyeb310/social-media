@@ -51,7 +51,12 @@ export default function MessagesDropdown() {
             <div className="p-4 text-center text-xs text-gray-500">Loading conversations...</div>
           ) : conversations.length > 0 ? (
             conversations.map((conv) => {
-              const otherUser = conv.participants.find(p => p.id !== currentUser?.id);
+              const otherUser = conv.participants.length === 1
+                ? conv.participants[0]
+                : conv.participants.find(p => 
+                    p.username?.toLowerCase() !== currentUser?.username?.toLowerCase() && 
+                    p.id != currentUser?.id
+                  ) || conv.participants[0];
               const lastMsg = conv.last_message;
               
               return (

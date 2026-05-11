@@ -30,7 +30,12 @@ export default function ChatModal({ conversation, onClose }) {
 
   if (!conversation) return null;
 
-  const otherParticipant = conversation.participants.find(p => p.id !== user?.id);
+  const otherParticipant = conversation.participants.length === 1 
+    ? conversation.participants[0] 
+    : conversation.participants.find(p => 
+        p.username?.toLowerCase() !== user?.username?.toLowerCase() && 
+        p.id != user?.id
+      ) || conversation.participants[0];
 
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -76,7 +81,11 @@ export default function ChatModal({ conversation, onClose }) {
           ) : (
             <>
               {messages.map((msg, index) => {
-                const isMe = msg.sender === user?.id || msg.sender_id === user?.id;
+                const isMe = 
+                  msg.sender == user?.id || 
+                  msg.sender_id == user?.id || 
+                  msg.sender === user?.username ||
+                  msg.sender_username === user?.username;
                 return (
                   <div key={msg.id || index} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                     <div className={`flex gap-x-2 max-w-[80%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
