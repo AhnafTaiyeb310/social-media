@@ -7,15 +7,18 @@
 ---
 
 ### 🎥 Watch the Interactive Video Demonstration
-Click the image below to watch the live-action walkthrough and feature demonstration of Aura on YouTube:
+Click the image below to watch the live-action walkthrough and feature demonstration of Sync on YouTube:
 
-[![Aura Demo Video](https://img.youtube.com/vi/XOwWdjVxYpI/maxresdefault.jpg)](https://youtu.be/XOwWdjVxYpI?si=fJAtYCi26dJiISi9)
+[![Sync Demo Video](https://img.youtube.com/vi/XOwWdjVxYpI/maxresdefault.jpg)](https://youtu.be/XOwWdjVxYpI?si=fJAtYCi26dJiISi9)
 
-*Alternatively, click here to watch: [Aura Video Demo](https://youtu.be/XOwWdjVxYpI?si=fJAtYCi26dJiISi9)*
+*Alternatively, click here to watch: [Sync Video Demo](https://youtu.be/XOwWdjVxYpI?si=fJAtYCi26dJiISi9)*
 
+*To see live website please hit the backend first to make the backend server live as it is on free tier.
+Backend hosted on Render Free tier: https://sync-backend-d7w9.onrender.com/
+Frontend hosted on Vercel : https://syncdev-social.vercel.app/
 ---
 
-## 🎯 Executive Summary (For HR Recruiters)
+## 🎯 Executive Summary
 
 Sync is a modern, high-performance social media platform specifically designed for developers to share stories, code snippets, drafts, and insights. 
 
