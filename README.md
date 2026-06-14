@@ -17,7 +17,7 @@ Click the image below to watch the live-action walkthrough and feature demonstra
 
 ## 🎯 Executive Summary (For HR Recruiters)
 
-**Aura** is a modern, high-performance social media platform specifically designed for developers to share stories, code snippets, drafts, and insights. 
+Sync is a modern, high-performance social media platform specifically designed for developers to share stories, code snippets, drafts, and insights. 
 
 As a **Full-Stack Developer**, I engineered Aura using a **decoupled architecture**—combining a robust, secure **Django (Python)** REST API backend with a high-performance, fluid **Next.js (React/JavaScript)** frontend. 
 
@@ -166,5 +166,5 @@ social-media/
 *   **Professional Best Practices:** Applied clean code principles, modular structure, strict security constraints, and detailed documentation.
 
 ---
-*Developed by Syed Ahmer Shah*
+*Developed by Ahnaf Taiyeb*
 *Feel free to reach out if you have any questions or are interested in collaborating!*
